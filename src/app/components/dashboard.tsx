@@ -45,45 +45,46 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
   const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
 
   useEffect(() => {
-    // Load user data
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    const userData = users[username];
-    if (userData) {
-      setBalance(userData.balance);
-      setPortfolio(userData.portfolio);
+  const loadData = async () => {
+    // 1. Get Balance from DB
+    try {
+      const res = await fetch(`http://localhost:5000/api/user/${username}`);
+      const data = await res.json();
+      setBalance(data.balance ?? 10000);
+    } catch {
+      setBalance(10000); // Fallback
     }
 
-    // Initialize performance data with time-based intervals (every 5 minutes going back)
-    const now = new Date();
-    const initialData: PerformanceData[] = [];
-    for (let i = 11; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 5 * 60 * 1000); // 5 minute intervals
-      initialData.push({
-        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        value: 10000,
-        timestamp: time.getTime()
-      });
+    // 2. Get Portfolio from LocalStorage
+    const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
+    if (savedPortfolio) {
+      setPortfolio(JSON.parse(savedPortfolio));
     }
-    setPerformanceData(initialData);
+  };
 
-    // Simulate stock price changes every 3 seconds
-    const interval = setInterval(() => {
-      setStocks(prevStocks =>
-        prevStocks.map(stock => {
-          const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5%
-          const newPrice = stock.currentPrice * (1 + changePercent);
-          const change = ((newPrice - stock.basePrice) / stock.basePrice) * 100;
-          return {
-            ...stock,
-            currentPrice: Math.max(1, parseFloat(newPrice.toFixed(2))),
-            change: parseFloat(change.toFixed(2))
-          };
-        })
-      );
-    }, 3000);
+  loadData();
 
-    return () => clearInterval(interval);
-  }, [username]);
+  // --- RE-INSERTED PRICE SIMULATION LOGIC ---
+  const interval = setInterval(() => {
+    setStocks(prevStocks =>
+      prevStocks.map(stock => {
+        // Random change between -5% and +5%
+        const changePercent = (Math.random() - 0.5) * 0.1; 
+        const newPrice = stock.currentPrice * (1 + changePercent);
+        // Calculate % change relative to the very first price (basePrice)
+        const change = ((newPrice - stock.basePrice) / stock.basePrice) * 100;
+        
+        return {
+          ...stock,
+          currentPrice: Math.max(1, parseFloat(newPrice.toFixed(2))),
+          change: parseFloat(change.toFixed(2))
+        };
+      })
+    );
+  }, 3000); // Updates every 3 seconds
+
+  return () => clearInterval(interval); // Cleanup on unmount
+}, [username]);
 
   // Update performance data only when a new minute arrives
   useEffect(() => {
@@ -119,17 +120,25 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
     }
   }, [stocks, balance, portfolio]);
 
-  const saveUserData = (newBalance: number, newPortfolio: Record<string, number>) => {
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    users[username] = {
-      ...users[username],
-      balance: newBalance,
-      portfolio: newPortfolio
-    };
-    localStorage.setItem('stockSimUsers', JSON.stringify(users));
-    setBalance(newBalance);
-    setPortfolio(newPortfolio);
-  };
+  const saveUserData = async (newBalance: number, newPortfolio: Record<string, number>) => {
+  // 1. Update React State (Instant)
+  setBalance(newBalance);
+  setPortfolio(newPortfolio);
+
+  // 2. Save ONLY Portfolio to LocalStorage
+  localStorage.setItem(`portfolio_${username}`, JSON.stringify(newPortfolio));
+
+  // 3. Save ONLY Balance to MongoDB
+  try {
+    await fetch('http://localhost:5000/api/update-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, newBalance }),
+    });
+  } catch (err) {
+    console.error("Database sync failed, but local state is fine.");
+  }
+};
 
   const handleBuy = (stock: Stock) => {
     const quantity = buyAmounts[stock.id] || 1;
