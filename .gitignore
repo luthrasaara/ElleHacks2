@@ -1,3 +1,6 @@
+<<<<<<< HEAD
+node_modules
+=======
 # Dependencies
 node_modules/
 .pnpm-store/
@@ -32,3 +35,4 @@ thumbs.db
 
 # OneDrive / System junk
 Desktop.ini
+>>>>>>> b5715e857734bf1b86a5e358010fdc14a37c3081
