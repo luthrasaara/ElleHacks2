@@ -24,6 +24,7 @@ interface DashboardProps {
 interface PerformanceData {
   time: string;
   value: number;
+  timestamp: number;
 }
 
 const INITIAL_STOCKS: Stock[] = [
@@ -41,71 +42,103 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
   const [buyAmounts, setBuyAmounts] = useState<Record<string, number>>({});
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
+  const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
 
   useEffect(() => {
-    // Load user data
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    const userData = users[username];
-    if (userData) {
-      setBalance(userData.balance);
-      setPortfolio(userData.portfolio);
+  const loadData = async () => {
+    // 1. Get Balance from DB
+    try {
+      const res = await fetch(`http://localhost:5000/api/user/${username}`);
+      const data = await res.json();
+      setBalance(data.balance ?? 10000);
+    } catch {
+      setBalance(10000); // Fallback
     }
 
-    // Initialize performance data
-    const now = new Date();
-    const initialData: PerformanceData[] = [];
-    for (let i = 20; i >= 0; i--) {
-      const time = new Date(now.getTime() - i * 3000);
-      initialData.push({
-        time: time.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-        value: 10000
-      });
+    // 2. Get Portfolio from LocalStorage
+    const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
+    if (savedPortfolio) {
+      setPortfolio(JSON.parse(savedPortfolio));
     }
-    setPerformanceData(initialData);
+  };
 
-    // Simulate stock price changes every 3 seconds
-    const interval = setInterval(() => {
-      setStocks(prevStocks =>
-        prevStocks.map(stock => {
-          const changePercent = (Math.random() - 0.5) * 0.1; // -5% to +5%
-          const newPrice = stock.currentPrice * (1 + changePercent);
-          const change = ((newPrice - stock.basePrice) / stock.basePrice) * 100;
-          return {
-            ...stock,
-            currentPrice: Math.max(1, parseFloat(newPrice.toFixed(2))),
-            change: parseFloat(change.toFixed(2))
-          };
-        })
-      );
-    }, 3000);
+  loadData();
 
-    return () => clearInterval(interval);
-  }, [username]);
+  // --- RE-INSERTED PRICE SIMULATION LOGIC ---
+  const interval = setInterval(() => {
+    setStocks(prevStocks =>
+      prevStocks.map(stock => {
+        // Random change between -5% and +5%
+        const changePercent = (Math.random() - 0.5) * 0.1; 
+        const newPrice = stock.currentPrice * (1 + changePercent);
+        // Calculate % change relative to the very first price (basePrice)
+        const change = ((newPrice - stock.basePrice) / stock.basePrice) * 100;
+        
+        return {
+          ...stock,
+          currentPrice: Math.max(1, parseFloat(newPrice.toFixed(2))),
+          change: parseFloat(change.toFixed(2))
+        };
+      })
+    );
+  }, 3000); // Updates every 3 seconds
 
-  // Update performance data when stocks or portfolio changes
+  return () => clearInterval(interval); // Cleanup on unmount
+}, [username]);
+
+  // Update performance data only when a new minute arrives
   useEffect(() => {
     const currentTotalValue = balance + calculatePortfolioValue();
     const now = new Date();
-    const timeString = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const currentMinute = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    setPerformanceData(prev => {
-      const newData = [...prev, { time: timeString, value: currentTotalValue }];
-      // Keep only the last 20 data points
-      return newData.slice(-20);
-    });
+    // Only add a new data point if we're in a new minute
+    if (currentMinute !== lastRecordedMinute) {
+      setPerformanceData(prev => {
+        const newData = [...prev, { 
+          time: currentMinute,
+          value: currentTotalValue,
+          timestamp: now.getTime()
+        }];
+        // Keep only the last 12 data points (last hour of 5-min intervals)
+        return newData.slice(-12);
+      });
+      setLastRecordedMinute(currentMinute);
+    } else {
+      // Update the current minute's value
+      setPerformanceData(prev => {
+        const updated = [...prev];
+        if (updated.length > 0) {
+          updated[updated.length - 1] = {
+            time: currentMinute,
+            value: currentTotalValue,
+            timestamp: now.getTime()
+          };
+        }
+        return updated;
+      });
+    }
   }, [stocks, balance, portfolio]);
 
-  const saveUserData = (newBalance: number, newPortfolio: Record<string, number>) => {
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    users[username] = {
-      ...users[username],
-      balance: newBalance,
-      portfolio: newPortfolio
-    };
-    localStorage.setItem('stockSimUsers', JSON.stringify(users));
-    setBalance(newBalance);
-    setPortfolio(newPortfolio);
-  };
+  const saveUserData = async (newBalance: number, newPortfolio: Record<string, number>) => {
+  // 1. Update React State (Instant)
+  setBalance(newBalance);
+  setPortfolio(newPortfolio);
+
+  // 2. Save ONLY Portfolio to LocalStorage
+  localStorage.setItem(`portfolio_${username}`, JSON.stringify(newPortfolio));
+
+  // 3. Save ONLY Balance to MongoDB
+  try {
+    await fetch('http://localhost:5000/api/update-balance', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, newBalance }),
+    });
+  } catch (err) {
+    console.error("Database sync failed, but local state is fine.");
+  }
+};
 
   const handleBuy = (stock: Stock) => {
     const quantity = buyAmounts[stock.id] || 1;
@@ -157,6 +190,29 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
 
   const totalValue = balance + calculatePortfolioValue();
 
+  // Custom tooltip to show actual time
+  const CustomTooltip = ({ active, payload }: any) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const date = new Date(data.timestamp);
+      const timeString = date.toLocaleTimeString([], { 
+        hour: '2-digit', 
+        minute: '2-digit',
+        second: '2-digit'
+      });
+      
+      return (
+        <div className="bg-slate-900/95 border border-cyan-500/30 rounded-lg p-3 shadow-lg">
+          <p className="text-slate-400 text-xs mb-1">{timeString}</p>
+          <p className="text-emerald-300 font-semibold">
+            ${data.value.toFixed(2)}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950">
       {/* Header */}
@@ -197,8 +253,9 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
                   <XAxis 
                     dataKey="time" 
                     stroke="#94a3b8"
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
+                    tick={{ fill: '#94a3b8', fontSize: 11 }}
                     tickLine={{ stroke: '#1e3a4f' }}
+                    interval="preserveStartEnd"
                   />
                   <YAxis 
                     stroke="#94a3b8"
@@ -206,15 +263,7 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
                     tickLine={{ stroke: '#1e3a4f' }}
                     domain={['dataMin - 100', 'dataMax + 100']}
                   />
-                  <Tooltip 
-                    contentStyle={{ 
-                      backgroundColor: '#1a2333', 
-                      border: '1px solid #1e3a4f',
-                      borderRadius: '8px',
-                      color: '#e0e7ff'
-                    }}
-                    formatter={(value: number) => [`$${value.toFixed(2)}`, 'Total Value']}
-                  />
+                  <Tooltip content={<CustomTooltip />} />
                   <Line 
                     type="monotone" 
                     dataKey="value" 

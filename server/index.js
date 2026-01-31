@@ -24,7 +24,7 @@ connectDB();
 
 // A simple "Sign Up" route for your kids' stock app
 app.post('/api/signup', async (req, res) => {
-  const db = client.db('stock_app');
+  const db = client.db('StockKidZ');
   const users = db.collection('users');
   
   const newUser = req.body; // { username, balance: 10000 }
@@ -35,7 +35,7 @@ app.post('/api/signup', async (req, res) => {
 
 app.post('/api/login', async (req, res) => {
   const { username, password } = req.body;
-  const db = client.db('stock_app');
+  const db = client.db('StockKidZ');
   const user = await db.collection('users').findOne({ username });
 
   if (user && user.password === password) {
@@ -45,3 +45,17 @@ app.post('/api/login', async (req, res) => {
   }
 });
 app.listen(5000, () => console.log('Server running on port 5000'));
+
+app.post('/api/update-balance', async (req, res) => {
+  const { username, newBalance } = req.body;
+  try {
+    const database = client.db('StockKidZ');
+    await database.collection('users').updateOne(
+      { username: username },
+      { $set: { balance: newBalance } }
+    );
+    res.status(200).json({ message: "Bank updated!" });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});

@@ -1,7 +1,10 @@
 {
   "name": "server",
   "version": "1.0.0",
+<<<<<<< HEAD
   "description": "",
+=======
+>>>>>>> 70195fdac46e7dd4f5e2c0389da10e10a302a55b
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
@@ -9,6 +12,10 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
+<<<<<<< HEAD
+=======
+  "description": "",
+>>>>>>> 70195fdac46e7dd4f5e2c0389da10e10a302a55b
   "dependencies": {
     "cors": "^2.8.6",
     "dotenv": "^17.2.3",
