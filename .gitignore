@@ -1,1 +1,38 @@
+<<<<<<< HEAD
 node_modules
+=======
+# Dependencies
+node_modules/
+.pnpm-store/
+
+# Build outputs
+dist/
+build/
+.next/
+
+# IDE / Editor folders
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Local environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS Files
+.DS_Store
+thumbs.db
+
+# OneDrive / System junk
+Desktop.ini
+>>>>>>> b5715e857734bf1b86a5e358010fdc14a37c3081
