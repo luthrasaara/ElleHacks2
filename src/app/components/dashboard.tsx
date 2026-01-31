@@ -19,6 +19,7 @@ interface Stock {
 interface DashboardProps {
   username: string;
   onLogout: () => void;
+  onNavigateAccounts: () => void;
 }
 
 interface PerformanceData {
@@ -36,7 +37,7 @@ const INITIAL_STOCKS: Stock[] = [
   { id: '6', name: 'GrowTree Group', symbol: 'GRT', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
-export function Dashboard({ username, onLogout }: DashboardProps) {
+export function Dashboard({ username, onLogout, onNavigateAccounts }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
@@ -227,6 +228,15 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
               <p className="text-sm text-slate-400">Hello, {username}!</p>
             </div>
           </div>
+          <Button 
+            onClick={onNavigateAccounts} 
+            variant="outline" 
+            size="sm" 
+            className="border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 hover:text-cyan-300 transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] hover:shadow-[0_0_15px_rgba(6,182,212,0.3)]"
+          >
+            <Wallet className="w-4 h-4 mr-2" />
+            Accounts
+          </Button>
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
