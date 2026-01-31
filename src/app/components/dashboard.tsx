@@ -27,12 +27,12 @@ interface PerformanceData {
 }
 
 const INITIAL_STOCKS: Stock[] = [
-  { id: '1', name: 'EcoBoost Inc', symbol: 'TECH', basePrice: 150, currentPrice: 150, change: 0 },
-  { id: '2', name: 'KindInvest Corp', symbol: 'GAME', basePrice: 85, currentPrice: 85, change: 0 },
-  { id: '3', name: 'BuddyBuilders Co', symbol: 'SWET', basePrice: 42, currentPrice: 42, change: 0 },
-  { id: '4', name: 'EcoFriendly Ltd', symbol: 'ECO', basePrice: 120, currentPrice: 120, change: 0 },
-  { id: '5', name: 'IdeaFactory', symbol: 'SPCE', basePrice: 200, currentPrice: 200, change: 0 },
-  { id: '6', name: 'GrowTree Group', symbol: 'PETS', basePrice: 55, currentPrice: 55, change: 0 },
+  { id: '1', name: 'EcoBoost Inc', symbol: 'ECOB', basePrice: 150, currentPrice: 150, change: 0 },
+  { id: '2', name: 'KindInvest Corp', symbol: 'KINV', basePrice: 85, currentPrice: 85, change: 0 },
+  { id: '3', name: 'BuddyBuilders Co', symbol: 'BDBL', basePrice: 42, currentPrice: 42, change: 0 },
+  { id: '4', name: 'HiveMind Ltd', symbol: 'HVM', basePrice: 120, currentPrice: 120, change: 0 },
+  { id: '5', name: 'IdeaFactory', symbol: 'IDFA', basePrice: 200, currentPrice: 200, change: 0 },
+  { id: '6', name: 'GrowTree Group', symbol: 'GRT', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
 export function Dashboard({ username, onLogout }: DashboardProps) {
