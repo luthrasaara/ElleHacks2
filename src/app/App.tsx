@@ -1,10 +1,12 @@
 import { useState, useEffect } from 'react';
 import { AuthPage } from '@/app/components/auth-page';
 import { Dashboard } from '@/app/components/dashboard';
+import { Accounts } from '@/app/components/accounts';
 import { Toaster } from '@/app/components/ui/sonner';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
+  const [currentView, setCurrentView] = useState<'dashboard' | 'accounts'>('dashboard');
 
   useEffect(() => {
     // Check if user is already logged in
@@ -27,7 +29,19 @@ export default function App() {
   return (
     <>
       {currentUser ? (
-        <Dashboard username={currentUser} onLogout={handleLogout} />
+        // Check currentView to decide which component to show
+        currentView === 'dashboard' ? (
+          <Dashboard 
+            username={currentUser} 
+            onLogout={handleLogout} 
+            onNavigateAccounts={() => setCurrentView('accounts')} // Pass the "switch" function
+          />
+        ) : (
+          <Accounts 
+            username={currentUser} 
+            onBack={() => setCurrentView('dashboard')} // Pass a way to get back
+          />
+        )
       ) : (
         <AuthPage onLogin={handleLogin} />
       )}

@@ -59,3 +59,20 @@ app.post('/api/update-balance', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/api/user/:username', async (req, res) => {
+  try {
+    const db = client.db('StockKidZ'); 
+    const user = await db.collection('users').findOne({ username: req.params.username });
+    
+    if (user) {
+      res.json({ 
+        balance: user.balance !== undefined ? user.balance : 10000 
+      });
+    } else {
+      res.status(404).json({ error: "User not found" });
+    }
+  } catch (err) {
+    console.error("Fetch error:", err);
+    res.status(500).json({ error: err.message });
+  }
+});
