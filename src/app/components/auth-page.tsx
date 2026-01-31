@@ -1,3 +1,5 @@
+"use client";
+
 import { useState } from 'react';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -17,54 +19,64 @@ export function AuthPage({ onLogin }: AuthPageProps) {
   const [signupPassword, setSignupPassword] = useState('');
   const [error, setError] = useState('');
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    
-    if (!users[loginUsername]) {
-      setError('User not found');
-      return;
-    }
-    
-    if (users[loginUsername].password !== loginPassword) {
-      setError('Incorrect password');
-      return;
-    }
+    try {
+      const response = await fetch('http://localhost:5000/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: loginUsername,
+          password: loginPassword,
+        }),
+      });
 
-    onLogin(loginUsername);
+      const data = await response.json();
+
+      if (response.ok) {
+        onLogin(loginUsername);
+      } else {
+        setError(data.message || 'Invalid username or password');
+      }
+    } catch (err) {
+      setError('Server connection error. Make sure your backend is running!');
+    }
   };
 
-  const handleSignup = (e: React.FormEvent) => {
+  const handleSignup = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
-    if (signupUsername.length < 3) {
-      setError('Username must be at least 3 characters');
+    // Validation
+    if (signupUsername.length < 3 || signupPassword.length < 4) {
+      setError('Username must be 3+ chars and Password 4+ chars');
       return;
     }
 
-    if (signupPassword.length < 4) {
-      setError('Password must be at least 4 characters');
-      return;
+    try {
+      const response = await fetch('http://localhost:5000/api/signup', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          username: signupUsername,
+          password: signupPassword,
+          balance: 10000,
+          portfolio: [],
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        onLogin(signupUsername);
+      } else {
+        setError(data.message || 'Signup failed');
+      }
+    } catch (err) {
+      setError('Cannot connect to server. Did you start your Node app?');
     }
-
-    const users = JSON.parse(localStorage.getItem('stockSimUsers') || '{}');
-    
-    if (users[signupUsername]) {
-      setError('Username already exists');
-      return;
-    }
-
-    users[signupUsername] = {
-      password: signupPassword,
-      balance: 10000,
-      portfolio: {}
-    };
-
-    localStorage.setItem('stockSimUsers', JSON.stringify(users));
-    onLogin(signupUsername);
   };
 
   return (
@@ -76,7 +88,9 @@ export function AuthPage({ onLogin }: AuthPageProps) {
               <TrendingUp className="w-6 h-6 text-slate-900" />
             </div>
           </div>
-          <h1 className="text-4xl mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Stock Kidz</h1>
+          <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+            Stock Kidz
+          </h1>
           <p className="text-slate-300">Learn to invest and have fun!</p>
         </div>
 
@@ -115,8 +129,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                       required
                     />
                   </div>
-                  {error && <p className="text-destructive text-sm">{error}</p>}
-                  <Button type="submit" className="w-full">
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                  <Button type="submit" className="w-full bg-emerald-500 hover:bg-emerald-600">
                     Login
                   </Button>
                 </form>
@@ -153,8 +167,8 @@ export function AuthPage({ onLogin }: AuthPageProps) {
                       required
                     />
                   </div>
-                  {error && <p className="text-destructive text-sm">{error}</p>}
-                  <Button type="submit" className="w-full">
+                  {error && <p className="text-red-500 text-sm">{error}</p>}
+                  <Button type="submit" className="w-full bg-cyan-500 hover:bg-cyan-600">
                     Create Account
                   </Button>
                 </form>
