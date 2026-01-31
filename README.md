@@ -10,5 +10,5 @@
   Run `npm run dev` to start the development server.
   
   ## In folder Server
-  Run npm init -y
-  Run npm install express mongodb dotenv cors
+  npm init -y
+  npm install express mongodb dotenv cors
