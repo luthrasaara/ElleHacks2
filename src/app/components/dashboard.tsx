@@ -19,7 +19,9 @@ interface Stock {
 interface DashboardProps {
   username: string;
   onLogout: () => void;
-}
+  onLeaderboard: () => void;
+};
+
 
 interface PerformanceData {
   time: string;
@@ -36,13 +38,14 @@ const INITIAL_STOCKS: Stock[] = [
   { id: '6', name: 'GrowTree Group', symbol: 'GRT', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
-export function Dashboard({ username, onLogout }: DashboardProps) {
+export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
   const [buyAmounts, setBuyAmounts] = useState<Record<string, number>>({});
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
+  const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
   const loadData = async () => {
@@ -213,6 +216,7 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
     return null;
   };
 
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950">
       {/* Header */}
@@ -227,10 +231,19 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
               <p className="text-sm text-slate-400">Hello, {username}!</p>
             </div>
           </div>
+          <Button
+              onClick={() => setShowLeaderboard(true)}
+              variant="outline"
+              size="sm"
+            >
+              <BarChart3 className="w-4 h-4 mr-2" />
+              Leaderboard
+            </Button>
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
+
         </div>
       </div>
 
@@ -407,6 +420,32 @@ export function Dashboard({ username, onLogout }: DashboardProps) {
           </Card>
         )}
       </div>
+      {showLeaderboard && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+    <div className="bg-slate-900 rounded-xl p-6 w-[400px] shadow-xl border border-cyan-500/30">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-lg text-cyan-300 font-semibold">
+          Leaderboard
+        </h2>
+        <button
+          onClick={() => setShowLeaderboard(false)}
+          className="text-slate-400 hover:text-white"
+        >
+          ✕
+        </button>
+      </div>
+
+      {/* Blank content area */}
+      <div className="h-40 flex items-center justify-center text-slate-500">
+        Coming soon…
+      </div>
+
+    </div>
+  </div>
+)}
+
     </div>
   );
 }
