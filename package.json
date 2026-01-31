@@ -42,10 +42,14 @@
     "class-variance-authority": "0.7.1",
     "clsx": "2.1.1",
     "cmdk": "1.1.1",
+    "cors": "^2.8.6",
     "date-fns": "3.6.0",
+    "dotenv": "^17.2.3",
     "embla-carousel-react": "8.6.0",
+    "express": "^5.2.1",
     "input-otp": "1.4.2",
     "lucide-react": "0.487.0",
+    "mongodb": "^7.0.0",
     "motion": "12.23.24",
     "next-themes": "0.4.6",
     "react-day-picker": "8.10.1",
@@ -84,5 +88,18 @@
     "overrides": {
       "vite": "6.3.5"
     }
-  }
+  },
+  "description": "This is a code bundle for Stock Simulator App. The original project is available at https://www.figma.com/design/N28lb3ZIUHgMxRxanSAt22/Stock-Simulator-App.",
+  "main": "index.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/luthrasaara/ElleHacks2.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/luthrasaara/ElleHacks2/issues"
+  },
+  "homepage": "https://github.com/luthrasaara/ElleHacks2#readme"
 }
