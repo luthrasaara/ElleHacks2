@@ -4,8 +4,7 @@
   "username": "stock_hero_2026",
   "password_hash": "...", // Never store plain text!
   "avatar": "penguin_icon.png",
-  "virtual_balance": 10000.00, 
-  "total_xp": 450, // For gamification
+  "virtual_balance": 10000.00,
   "created_at": "ISODate"
 }
 

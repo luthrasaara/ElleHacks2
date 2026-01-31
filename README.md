@@ -12,3 +12,7 @@
   ## In folder Server
   Run npm init -y
   Run npm install express mongodb dotenv cors
+  Run node index.js to start the server
+
+  ** Important add the api key in discord to .env (create this file in /server if its not there)
+
