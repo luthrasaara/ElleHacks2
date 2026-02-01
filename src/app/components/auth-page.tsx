@@ -85,11 +85,11 @@ export function AuthPage({ onLogin }: AuthPageProps) {
         <div className="text-center mb-8">
           <div className="flex items-center justify-center gap-2 mb-4">
             <div className="w-12 h-12 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-2xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
-              <TrendingUp className="w-6 h-6 text-slate-900" />
+            <span className="text-2xl">🥔</span>
             </div>
           </div>
           <h1 className="text-4xl font-bold mb-2 bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
-            Stock Kidz
+            Trader Tots
           </h1>
           <p className="text-slate-300">Learn to invest and have fun!</p>
         </div>
