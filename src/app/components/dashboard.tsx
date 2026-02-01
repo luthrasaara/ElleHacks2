@@ -6,6 +6,7 @@ import { Badge } from '@/app/components/ui/badge';
 import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { MessageCircle, X } from 'lucide-react';
 
 interface Stock {
   id: string;
@@ -48,6 +49,8 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
   const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
+  const [showChat, setShowChat] = useState(false);
+
 
 
   useEffect(() => {
@@ -413,6 +416,10 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
                       >
                         Sell
                       </Button>
+
+                      
+
+
                     </div>
                   </CardContent>
                 </Card>
@@ -500,9 +507,85 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
       >
         Close
       </Button>
+
+      
     </div>
   </div>
 )}
+
+{showChat && (
+  <div
+    className="
+      fixed bottom-24 right-6
+      w-80 h-[420px]
+      bg-slate-900
+      border border-cyan-500/30
+      rounded-2xl
+      shadow-2xl
+      flex flex-col
+      z-40
+    "
+  >
+    {/* Header */}
+    <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/20">
+      <div className="flex items-center gap-2">
+        <MessageCircle className="w-5 h-5 text-emerald-400" />
+        <span className="text-emerald-300 font-semibold">Stock Kidz AI</span>
+      </div>
+      <button
+        onClick={() => setShowChat(false)}
+        className="text-slate-400 hover:text-white"
+      >
+        <X size={18} />
+      </button>
+    </div>
+
+    {/* Messages area */}
+    <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300">
+      <p className="text-slate-400">
+        👋 Hi {username}!  
+        Ask me about stocks, your portfolio, or trading tips.
+      </p>
+    </div>
+
+    {/* Input */}
+    <div className="p-3 border-t border-cyan-500/20">
+      <input
+        placeholder="Type a message..."
+        className="
+          w-full rounded-lg
+          bg-slate-800
+          border border-slate-700
+          px-3 py-2
+          text-sm text-white
+          focus:outline-none focus:ring-1 focus:ring-emerald-400
+        "
+      />
+    </div>
+  </div>
+)}
+
+<Button
+  onClick={() => setShowChat(prev => !prev)}
+  className="
+    fixed bottom-6 right-6
+    h-14 w-14 rounded-full
+    bg-emerald-500 hover:bg-emerald-600
+    shadow-lg shadow-emerald-500/40
+    flex items-center justify-center
+    z-50
+  "
+  title="Chat with Stock Kidz AI"
+>
+  {showChat ? (
+    <X className="w-6 h-6 text-slate-900" />
+  ) : (
+    <MessageCircle className="w-6 h-6 text-slate-900" />
+  )}
+</Button>
+
+
+
 
     </div>
   );
