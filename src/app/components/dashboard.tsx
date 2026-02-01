@@ -20,6 +20,7 @@ interface DashboardProps {
   username: string;
   onLogout: () => void;
   onLeaderboard: () => void;
+  onAccount: () => void;
 };
 
 
@@ -38,7 +39,7 @@ const INITIAL_STOCKS: Stock[] = [
   { id: '6', name: 'GrowTree Group', symbol: 'GRT', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
-export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps) {
+export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
@@ -46,6 +47,8 @@ export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps)
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
   const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
+  const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
+
 
   useEffect(() => {
   const loadData = async () => {
@@ -238,7 +241,12 @@ export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps)
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               Leaderboard
-            </Button>
+          </Button>
+          <Button onClick={onAccount} variant="outline" size="sm">
+            <LogOut className="w-4 h-4 mr-2" />
+            Account
+          </Button>
+
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
