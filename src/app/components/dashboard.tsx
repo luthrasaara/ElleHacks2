@@ -85,7 +85,7 @@ const sendMessage = async (text: string) => {
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
         messages: [
-          { role: 'system', content: 'You are Cashy, a friendly stock trading assistant aimed for kids in middle school. \
+          { role: 'system', content: 'You are Trader Joe (Jo for short), a friendly stock trading assistant aimed for kids in middle school. \
             So speak in a concise, simple manner, be upbeat (but not to the point where its annoying). and dont be \
             too complicated. The current stocks on the app are GLD, QQQ, RBLX, USO, XRT, and VHT.' },
           { role: 'user', content: text }
@@ -329,10 +329,10 @@ useEffect(() => {
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-gradient-to-br from-emerald-400 to-cyan-400 rounded-xl flex items-center justify-center shadow-lg shadow-emerald-500/50">
-              <TrendingUp className="w-5 h-5 text-slate-900" />
+              <span className="text-2xl">🥔</span>
             </div>
             <div>
-              <h1 className="text-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Stock Kidz</h1>
+              <h1 className="text-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Trader Tots</h1>
               <p className="text-sm text-slate-400">Hello, {username}!</p>
             </div>
           </div>
@@ -603,7 +603,7 @@ useEffect(() => {
     <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/20">
       <div className="flex items-center gap-2">
         <MessageCircle className="w-5 h-5 text-emerald-400" />
-        <span className="text-emerald-300 font-semibold">Stock Kidz AI</span>
+        <span className="text-emerald-300 font-semibold">Trader Tots AI</span>
       </div>
       <button
         onClick={() => setShowChat(false)}
@@ -613,7 +613,7 @@ useEffect(() => {
       </button>
     </div>
 
-<div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col custom-scrollbar">
+<div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 custom-scrollbar">
 
   {messages.length === 0 && (
     <p className="text-slate-400">
