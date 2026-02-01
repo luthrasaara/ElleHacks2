@@ -125,13 +125,11 @@ const sendMessage = async (text: string) => {
   if (!text.trim()) return;
   
 
-  // 1️⃣ Show user message instantly
   setMessages(prev => [...prev, { role: 'user', content: text }]);
   setInput('');
   
 
   try {
-    // 2️⃣ Call OpenRouter API
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -139,7 +137,7 @@ const sendMessage = async (text: string) => {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
+        model: 'openai/gpt-3.5-turbo',
         messages: [
   {
     role: 'system',
@@ -165,11 +163,9 @@ Keep explanations simple, upbeat, and clear.
       }),
     });
 
-    // 3️⃣ Parse JSON response
     const data = await res.json();
-    console.log('OpenRouter response:', data); // 🔍 debug
+    console.log('OpenRouter response:', data);
 
-    // 4️⃣ Safely extract assistant reply
     let reply = '⚠️ No response from OpenRouter.';
 
     if (data.choices && data.choices.length > 0) {
@@ -181,7 +177,6 @@ Keep explanations simple, upbeat, and clear.
       }
     }
 
-    // 5️⃣ Add assistant reply to messages
     setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
   } catch (err) {
     console.error('OpenRouter fetch error:', err);
@@ -204,7 +199,6 @@ useEffect(() => {
 
   useEffect(() => {
     const loadData = async () => {
-      // 1. Get Balance from DB
       try {
         const res = await fetch(`http://127.0.0.1:5000/api/user/${username}`);
         const data = await res.json();
@@ -214,16 +208,15 @@ useEffect(() => {
         setBalance(10000);
       }
   
-      // 2. Get Portfolio from LocalStorage
       const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
       if (savedPortfolio) {
         setPortfolio(JSON.parse(savedPortfolio));
       }
     };
   
-    loadData(); // ← FIX: Actually call it!
+    loadData(); 
   
-    // 3. Get Real Prices from Flask
+ 
     const fetchRealPrices = async () => {
       try {
         const res = await fetch('http://127.0.0.1:5001/prices');
@@ -233,8 +226,7 @@ useEffect(() => {
           prevStocks.map(stock => {
             const apiData = data[stock.id];
             if (apiData) {
-              // 🎲 Add random fluctuation (-1% to +1%)
-              const randomVariation = (Math.random() - 0.5) * 0.06; // -0.01 to +0.01
+              const randomVariation = (Math.random() - 0.5) * 0.06; 
               const adjustedPrice = apiData.currentPrice * (1 + randomVariation);
               
               const change = ((adjustedPrice - apiData.basePrice) / apiData.basePrice) * 100;
@@ -254,8 +246,8 @@ useEffect(() => {
       }
     };
   
-    fetchRealPrices(); // Initial fetch
-    const interval = setInterval(fetchRealPrices, 10000); // Every 30 seconds
+    fetchRealPrices(); 
+    const interval = setInterval(fetchRealPrices, 10000); 
   
     return () => clearInterval(interval);
   }, [username]);
@@ -275,13 +267,12 @@ useEffect(() => {
 
   fetchLeaderboard();
 }, [showLeaderboard]);
-  // Update performance data only when a new minute arrives
+
   useEffect(() => {
     const currentTotalValue = balance + calculatePortfolioValue();
     const now = new Date();
     const currentMinute = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
     
-    // Only add a new data point if we're in a new minute
     if (currentMinute !== lastRecordedMinute) {
       setPerformanceData(prev => {
         const newData = [...prev, { 
@@ -289,12 +280,12 @@ useEffect(() => {
           value: currentTotalValue,
           timestamp: now.getTime()
         }];
-        // Keep only the last 12 data points (last hour of 5-min intervals)
+
         return newData.slice(-12);
       });
       setLastRecordedMinute(currentMinute);
     } else {
-      // Update the current minute's value
+
       setPerformanceData(prev => {
         const updated = [...prev];
         if (updated.length > 0) {
@@ -310,14 +301,14 @@ useEffect(() => {
   }, [stocks, balance, portfolio]);
 
   const saveUserData = async (newBalance: number, newPortfolio: Record<string, number>) => {
-  // 1. Update React State (Instant)
+
   setBalance(newBalance);
   setPortfolio(newPortfolio);
 
-  // 2. Save ONLY Portfolio to LocalStorage
+
   localStorage.setItem(`portfolio_${username}`, JSON.stringify(newPortfolio));
 
-  // 3. Save ONLY Balance to MongoDB
+
   try {
     await fetch('http://localhost:5000/api/update-balance', {
       method: 'POST',
@@ -379,7 +370,7 @@ useEffect(() => {
 
   const totalValue = balance + calculatePortfolioValue();
 
-  // Custom tooltip to show actual time
+
   const CustomTooltip = ({ active, payload }: any) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
@@ -779,7 +770,7 @@ useEffect(() => {
     </div>
   ))}
 
-  {/* 👇 THIS MUST BE LAST */}
+  {/* THIS MUST BE LAST */}
   <div ref={messagesEndRef} />
 
 </div>
