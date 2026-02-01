@@ -133,7 +133,7 @@ const sendMessage = async (text: string) => {
     // 3. Get Real Prices from Flask
     const fetchRealPrices = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:5000/prices'); // ← FIX: Correct endpoint
+        const res = await fetch('http://127.0.0.1:5001/prices'); // ← FIX: Correct endpoint
         const data = await res.json(); // ← FIX: Renamed from apiData
         
         setStocks(prevStocks =>
