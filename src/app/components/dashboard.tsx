@@ -51,6 +51,18 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
   const [showChat, setShowChat] = useState(false);
+  const [showLearn, setShowLearn] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
+
+  const LEARN_TERMS: Record<string, string> = {
+    "Diversification": "🎯 Don’t put all your money in one stock! Spreading money across different stocks lowers risk.",
+    "Stock": "📈 A stock means you own a tiny piece of a company.",
+    "Portfolio": "🧺 Your collection of all the stocks you own.",
+    "Risk": "⚠️ How likely it is that you could lose money.",
+    "Profit": "💰 Money you gain when a stock goes up and you sell it.",
+    "Loss": "📉 Money you lose when a stock goes down."
+  };
+
   const [messages, setMessages] = useState<
   { role: 'user' | 'assistant'; content: string }[]
 >([]);
@@ -150,17 +162,22 @@ useEffect(() => {
     // 3. Get Real Prices from Flask
     const fetchRealPrices = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:5001/prices'); // ← FIX: Correct endpoint
-        const data = await res.json(); // ← FIX: Renamed from apiData
+        const res = await fetch('http://127.0.0.1:5001/prices');
+        const data = await res.json();
         
         setStocks(prevStocks =>
           prevStocks.map(stock => {
             const apiData = data[stock.id];
             if (apiData) {
-              const change = ((apiData.currentPrice - apiData.basePrice) / apiData.basePrice) * 100;
+              // 🎲 Add random fluctuation (-1% to +1%)
+              const randomVariation = (Math.random() - 0.5) * 0.06; // -0.01 to +0.01
+              const adjustedPrice = apiData.currentPrice * (1 + randomVariation);
+              
+              const change = ((adjustedPrice - apiData.basePrice) / apiData.basePrice) * 100;
+              
               return {
                 ...stock,
-                currentPrice: apiData.currentPrice,
+                currentPrice: parseFloat(adjustedPrice.toFixed(2)),
                 basePrice: apiData.basePrice,
                 change: parseFloat(change.toFixed(2))
               };
@@ -174,7 +191,7 @@ useEffect(() => {
     };
   
     fetchRealPrices(); // Initial fetch
-    const interval = setInterval(fetchRealPrices, 30000); // Every 30 seconds
+    const interval = setInterval(fetchRealPrices, 10000); // Every 30 seconds
   
     return () => clearInterval(interval);
   }, [username]);
@@ -336,14 +353,17 @@ useEffect(() => {
               <p className="text-sm text-slate-400">Hello, {username}!</p>
             </div>
           </div>
-          <Button
-              onClick={() => setShowLeaderboard(true)}
+          <Button onClick={() => setShowLeaderboard(true)}
               variant="outline"
               size="sm"
             >
               <BarChart3 className="w-4 h-4 mr-2" />
               Leaderboard
           </Button>
+          <Button onClick={() => setShowLearn(true)} variant="outline" size="sm" >
+          📘 Learn
+          </Button>
+
           <Button onClick={onAccount} variant="outline" size="sm">
             <User className="w-4 h-4 mr-2" />
             Account
@@ -576,7 +596,7 @@ useEffect(() => {
 
       <Button 
         onClick={() => setShowLeaderboard(false)} 
-        className="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-white"
+        className="w-full mt-6 from-slate-900 via-blue-950 to-teal-950 text-white"
       >
         Close
       </Button>
@@ -585,6 +605,46 @@ useEffect(() => {
     </div>
   </div>
 )}
+{/* Learn Modal ← ADD THIS HERE */}
+{showLearn && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="bg-slate-900 rounded-xl p-6 w-[420px] shadow-xl border border-emerald-500/30">
+
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl text-emerald-300 font-bold">📘 Learn Finance Basics</h2>
+        <button onClick={() => setShowLearn(false)} className="text-slate-400 hover:text-white">✕</button>
+      </div>
+
+      <div className="grid grid-cols-2 gap-2 mb-4">
+        {Object.keys(LEARN_TERMS).map(term => (
+          <button
+            key={term}
+            onClick={() => setSelectedTerm(term)}
+            className="bg-slate-800 hover:bg-emerald-500/20 text-slate-200 px-3 py-2 rounded-lg text-sm"
+          >
+            {term}
+          </button>
+        ))}
+      </div>
+
+      {selectedTerm && (
+        <div className="bg-slate-800/60 border border-emerald-500/30 rounded-lg p-4 text-slate-300 text-sm">
+          <strong className="text-emerald-300">{selectedTerm}</strong>
+          <p className="mt-2">{LEARN_TERMS[selectedTerm]}</p>
+        </div>
+      )}
+
+      <Button
+        onClick={() => setShowLearn(false)}
+        className="w-full mt-4 text-slate-300 bg-slate-800 hover:bg-emerald-500/20"
+      >
+        Close
+      </Button>
+
+    </div>
+  </div>
+)}
+
 
 {showChat && (
   <div
