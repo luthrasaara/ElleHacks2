@@ -87,6 +87,23 @@ app.get('/api/user/:username', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+app.get('/api/leaderboard', async (req, res) => {
+  try {
+    const db = client.db('StockKidZ');
+    // .find({}) gets everyone
+    // .project({...}) only grabs the fields we want (1 = yes, 0 = no)
+    // .sort({ balance: -1 }) puts the richest kids at the top
+    const leaderboard = await db.collection('users')
+      .find({})
+      .project({ username: 1, balance: 1, _id: 0 }) 
+      .sort({ balance: -1 })
+      .toArray();
+
+    res.json(leaderboard);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // --- THE LISTEN COMMAND GOES AT THE VERY END ---
 app.listen(5000, () => console.log('✅ Server running on port 5000 and all routes registered!'));
