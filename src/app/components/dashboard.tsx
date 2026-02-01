@@ -54,6 +54,8 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews
   const [showChat, setShowChat] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
+  const [showSuggestions, setShowSuggestions] = useState(true);
+
 
   const LEARN_TERMS: Record<string, string> = {
     "Diversification": "🎯 Don’t put all your money in one stock! Spreading money across different stocks lowers risk.",
@@ -79,6 +81,45 @@ const PRE_MADE_QUESTIONS = [
   "How much money have I made/lost?"
 ];
 
+const buildUserContext = () => {
+  const holdings = Object.entries(portfolio)
+    .filter(([_, qty]) => qty > 0)
+    .map(([stockId, qty]) => {
+      const stock = stocks.find(s => s.id === stockId);
+      if (!stock) return null;
+
+      return `${stock.symbol}: ${qty} shares at $${stock.currentPrice.toFixed(2)}`;
+    })
+    .filter(Boolean)
+    .join(', ');
+
+  const totalPortfolio = calculatePortfolioValue();
+  const totalValue = balance + totalPortfolio;
+  const profitLoss = totalValue - 10000;
+
+  return `
+Cash balance: $${balance.toFixed(2)}
+Portfolio value: $${totalPortfolio.toFixed(2)}
+Total value: $${totalValue.toFixed(2)}
+Profit/Loss from start: ${profitLoss >= 0 ? '+' : '-'}$${Math.abs(profitLoss).toFixed(2)}
+
+Holdings:
+${holdings || 'No stocks owned'}
+`;
+};
+
+
+
+const buildStockDefinitions = () => {
+  return stocks.map(stock => `
+${stock.symbol} (${stock.name})
+• Theme: ${stock.symbol.replace(/^[^a-zA-Z]+/, '')}
+• Current price: $${stock.currentPrice.toFixed(2)}
+• Change: ${stock.change}%
+`).join('\n');
+};
+
+
 
 const sendMessage = async (text: string) => {
   if (!text.trim()) return;
@@ -100,11 +141,27 @@ const sendMessage = async (text: string) => {
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
         messages: [
-          { role: 'system', content: 'You are Trader Joe (Jo for short), a friendly stock trading assistant aimed for kids in middle school. \
-            So speak in a concise, simple manner, be upbeat (but not to the point where its annoying). and dont be \
-            too complicated. The current stocks on the app are GLD, QQQ, RBLX, USO, XRT, and VHT.' },
-          { role: 'user', content: text }
-        ]
+  {
+    role: 'system',
+    content: `
+You are Trader Joe (Jo for short), a friendly stock trading assistant for kids.
+
+This is a STOCK TRADING GAME with MADE-UP STOCKS.
+Do NOT reference real-world stock markets.
+
+GAME STOCKS:
+${buildStockDefinitions()}
+
+CURRENT PLAYER STATUS:
+${buildUserContext()}
+
+Explain answers using ONLY this game data.
+Keep explanations simple, upbeat, and clear.
+`
+  },
+  { role: 'user', content: text }
+]
+
       }),
     });
 
@@ -132,7 +189,11 @@ const sendMessage = async (text: string) => {
       ...prev,
       { role: 'assistant', content: '⚠️ Something went wrong.' },
     ]);
+
+    setShowSuggestions(true);
+    
   }
+  
 };
 
 useEffect(() => {
@@ -692,12 +753,16 @@ useEffect(() => {
   <div className="px-3 pb-2 flex flex-wrap gap-2 overflow-x-auto">
     {PRE_MADE_QUESTIONS.map((q, i) => (
       <button
-        key={i}
-        onClick={() => sendMessage(q)}
-        className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs px-2 py-1 rounded-full whitespace-nowrap"
-      >
-        {q}
-      </button>
+  key={i}
+  onClick={() => {
+    setShowSuggestions(false);
+    sendMessage(q);
+  }}
+  className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs px-2 py-1 rounded-full whitespace-nowrap"
+>
+  {q}
+</button>
+
     ))}
   </div>
 
