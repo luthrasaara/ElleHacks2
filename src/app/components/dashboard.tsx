@@ -1,12 +1,33 @@
-import { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
-import { Button } from '@/app/components/ui/button';
-import { Input } from '@/app/components/ui/input';
-import { Badge } from '@/app/components/ui/badge';
-import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User } from 'lucide-react';
-import { toast } from 'sonner';
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { MessageCircle, X } from 'lucide-react';
+import { useState, useEffect } from "react";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/app/components/ui/card";
+import { Button } from "@/app/components/ui/button";
+import { Input } from "@/app/components/ui/input";
+import { Badge } from "@/app/components/ui/badge";
+import {
+  LogOut,
+  TrendingUp,
+  TrendingDown,
+  Wallet,
+  Package,
+  BarChart3,
+  User,
+} from "lucide-react";
+import { toast } from "sonner";
+import {
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+} from "recharts";
 
 interface Stock {
   id: string;
@@ -22,8 +43,7 @@ interface DashboardProps {
   onLogout: () => void;
   onLeaderboard: () => void;
   onAccount: () => void;
-};
-
+}
 
 interface PerformanceData {
   time: string;
@@ -32,37 +52,85 @@ interface PerformanceData {
 }
 
 const INITIAL_STOCKS: Stock[] = [
-  { id: '1', name: 'GLD', symbol: '⚜️ Get Gold', basePrice: 150, currentPrice: 150, change: 0 },
-  { id: '2', name: 'QQQ', symbol: '🧊 Cubes', basePrice: 85, currentPrice: 85, change: 0 },
-  { id: '3', name: 'RBLX', symbol: '🌞 Roblocks', basePrice: 42, currentPrice: 42, change: 0 },
-  { id: '4', name: 'USO', symbol: '⛽ Big Oil', basePrice: 120, currentPrice: 120, change: 0 },
-  { id: '5', name: 'XRT', symbol: '🛍️ Shopping Spree', basePrice: 200, currentPrice: 200, change: 0 },
-  { id: '6', name: 'VHT', symbol: '🩺 Health', basePrice: 55, currentPrice: 55, change: 0 },
+  {
+    id: "1",
+    name: "GLD",
+    symbol: "⚜️ Get Gold",
+    basePrice: 150,
+    currentPrice: 150,
+    change: 0,
+  },
+  {
+    id: "2",
+    name: "QQQ",
+    symbol: "🧊 Cubes",
+    basePrice: 85,
+    currentPrice: 85,
+    change: 0,
+  },
+  {
+    id: "3",
+    name: "RBLX",
+    symbol: "🌞 Roblocks",
+    basePrice: 42,
+    currentPrice: 42,
+    change: 0,
+  },
+  {
+    id: "4",
+    name: "USO",
+    symbol: "⛽ Big Oil",
+    basePrice: 120,
+    currentPrice: 120,
+    change: 0,
+  },
+  {
+    id: "5",
+    name: "XRT",
+    symbol: "🛍️ Shopping Spree",
+    basePrice: 200,
+    currentPrice: 200,
+    change: 0,
+  },
+  {
+    id: "6",
+    name: "VHT",
+    symbol: "🩺 Health",
+    basePrice: 55,
+    currentPrice: 55,
+    change: 0,
+  },
 ];
 
-export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: DashboardProps) {
+export function Dashboard({
+  username,
+  onLogout,
+  onLeaderboard,
+  onAccount,
+}: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
   const [buyAmounts, setBuyAmounts] = useState<Record<string, number>>({});
   const [performanceData, setPerformanceData] = useState<PerformanceData[]>([]);
-  const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
+  const [lastRecordedMinute, setLastRecordedMinute] = useState<string>("");
   const [showLeaderboard, setShowLeaderboard] = useState(false);
-  const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
+  const [leaderboardData, setLeaderboardData] = useState<
+    { username: string; balance: number }[]
+  >([]);
   const [showChat, setShowChat] = useState(false);
   const [messages, setMessages] = useState<
-  { role: 'user' | 'assistant'; content: string }[]
->([]);
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
 
-const [input, setInput] = useState('');
+  const [input, setInput] = useState("");
 
+  const sendMessage = async (text: string) => {
+    if (!text.trim()) return;
 
-const sendMessage = async (text: string) => {
-  if (!text.trim()) return;
-
-  // Show user message instantly
-  setMessages(prev => [...prev, { role: 'user', content: text }]);
-  setInput('');
+    // show user message instantly
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInput("");
 
   // Add "thinking" indicator
   setMessages(prev => [...prev, { role: 'assistant', content: '💭 Thinking...' }]);
@@ -112,97 +180,106 @@ const sendMessage = async (text: string) => {
     const loadData = async () => {
       // 1. Get Balance from DB
       try {
-        const res = await fetch(`http://127.0.0.1:5000/api/user/${username}`);
+        const res = await fetch(`http://localhost:5000/api/user/${username}`);
         const data = await res.json();
         setBalance(data.balance ?? 10000);
       } catch (err) {
         console.error("Balance fetch failed:", err);
         setBalance(10000);
       }
-  
+
       // 2. Get Portfolio from LocalStorage
       const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
       if (savedPortfolio) {
         setPortfolio(JSON.parse(savedPortfolio));
       }
     };
-  
-    loadData(); // ← FIX: Actually call it!
-  
+
     // 3. Get Real Prices from Flask
     const fetchRealPrices = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:5000/prices'); // ← FIX: Correct endpoint
-        const data = await res.json(); // ← FIX: Renamed from apiData
-        
-        setStocks(prevStocks =>
-          prevStocks.map(stock => {
-            const apiData = data[stock.id];
-            if (apiData) {
-              const change = ((apiData.currentPrice - apiData.basePrice) / apiData.basePrice) * 100;
+        const res = await fetch("http://localhost:5000/prices");
+        const apiData = await res.json();
+
+        setStocks((prevStocks) =>
+          prevStocks.map((stock) => {
+            const updatedInfo = apiData[stock.id];
+            if (updatedInfo) {
+              const change =
+                ((updatedInfo.currentPrice - updatedInfo.basePrice) /
+                  updatedInfo.basePrice) *
+                100;
               return {
                 ...stock,
-                currentPrice: apiData.currentPrice,
-                basePrice: apiData.basePrice,
-                change: parseFloat(change.toFixed(2))
+                currentPrice: updatedInfo.currentPrice,
+                basePrice: updatedInfo.basePrice,
+                change: parseFloat(change.toFixed(2)),
               };
             }
             return stock;
-          })
+          }),
         );
       } catch (error) {
-        console.error('Failed to fetch real prices:', error);
+        console.error("Failed to fetch real prices:", error);
       }
     };
-  
+
+    loadData();
     fetchRealPrices(); // Initial fetch
-    const interval = setInterval(fetchRealPrices, 30000); // Every 30 seconds
-  
-    return () => clearInterval(interval);
+
+    const priceInterval = setInterval(fetchRealPrices, 30000); // Update every 30s
+
+    return () => clearInterval(priceInterval);
   }, [username]);
   useEffect(() => {
-  const fetchLeaderboard = async () => {
-    if (showLeaderboard) {
-      try {
-        const res = await fetch('http://127.0.0.1:5000/api/leaderboard');
-        const data = await res.json();
-        setLeaderboardData(data);
-      } catch (err) {
-        console.error("Leaderboard fetch failed:", err);
-        toast.error("Could not load leaderboard");
+    const fetchLeaderboard = async () => {
+      if (showLeaderboard) {
+        try {
+          const res = await fetch("http://127.0.0.1:5000/api/leaderboard");
+          const data = await res.json();
+          setLeaderboardData(data);
+        } catch (err) {
+          console.error("Leaderboard fetch failed:", err);
+          toast.error("Could not load leaderboard");
+        }
       }
-    }
-  };
+    };
 
-  fetchLeaderboard();
-}, [showLeaderboard]);
+    fetchLeaderboard();
+  }, [showLeaderboard]);
   // Update performance data only when a new minute arrives
   useEffect(() => {
     const currentTotalValue = balance + calculatePortfolioValue();
     const now = new Date();
-    const currentMinute = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-    
+    const currentMinute = now.toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+
     // Only add a new data point if we're in a new minute
     if (currentMinute !== lastRecordedMinute) {
-      setPerformanceData(prev => {
-        const newData = [...prev, { 
-          time: currentMinute,
-          value: currentTotalValue,
-          timestamp: now.getTime()
-        }];
+      setPerformanceData((prev) => {
+        const newData = [
+          ...prev,
+          {
+            time: currentMinute,
+            value: currentTotalValue,
+            timestamp: now.getTime(),
+          },
+        ];
         // Keep only the last 12 data points (last hour of 5-min intervals)
         return newData.slice(-12);
       });
       setLastRecordedMinute(currentMinute);
     } else {
       // Update the current minute's value
-      setPerformanceData(prev => {
+      setPerformanceData((prev) => {
         const updated = [...prev];
         if (updated.length > 0) {
           updated[updated.length - 1] = {
             time: currentMinute,
             value: currentTotalValue,
-            timestamp: now.getTime()
+            timestamp: now.getTime(),
           };
         }
         return updated;
@@ -210,25 +287,28 @@ const sendMessage = async (text: string) => {
     }
   }, [stocks, balance, portfolio]);
 
-  const saveUserData = async (newBalance: number, newPortfolio: Record<string, number>) => {
-  // 1. Update React State (Instant)
-  setBalance(newBalance);
-  setPortfolio(newPortfolio);
+  const saveUserData = async (
+    newBalance: number,
+    newPortfolio: Record<string, number>,
+  ) => {
+    // 1. Update React State (Instant)
+    setBalance(newBalance);
+    setPortfolio(newPortfolio);
 
-  // 2. Save ONLY Portfolio to LocalStorage
-  localStorage.setItem(`portfolio_${username}`, JSON.stringify(newPortfolio));
+    // 2. Save ONLY Portfolio to LocalStorage
+    localStorage.setItem(`portfolio_${username}`, JSON.stringify(newPortfolio));
 
-  // 3. Save ONLY Balance to MongoDB
-  try {
-    await fetch('http://localhost:5000/api/update-balance', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username, newBalance }),
-    });
-  } catch (err) {
-    console.error("Database sync failed, but local state is fine.");
-  }
-};
+    // 3. Save ONLY Balance to MongoDB
+    try {
+      await fetch("http://localhost:5000/api/update-balance", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ username, newBalance }),
+      });
+    } catch (err) {
+      console.error("Database sync failed, but local state is fine.");
+    }
+  };
 
   const handleBuy = (stock: Stock) => {
     const quantity = buyAmounts[stock.id] || 1;
@@ -242,11 +322,13 @@ const sendMessage = async (text: string) => {
     const newBalance = balance - totalCost;
     const newPortfolio = {
       ...portfolio,
-      [stock.id]: (portfolio[stock.id] || 0) + quantity
+      [stock.id]: (portfolio[stock.id] || 0) + quantity,
     };
 
     saveUserData(newBalance, newPortfolio);
-    toast.success(`Bought ${quantity} shares of ${stock.symbol} for $${totalCost.toFixed(2)}`);
+    toast.success(
+      `Bought ${quantity} shares of ${stock.symbol} for $${totalCost.toFixed(2)}`,
+    );
     setBuyAmounts({ ...buyAmounts, [stock.id]: 1 });
   };
 
@@ -263,17 +345,19 @@ const sendMessage = async (text: string) => {
     const newBalance = balance + totalValue;
     const newPortfolio = {
       ...portfolio,
-      [stock.id]: owned - quantity
+      [stock.id]: owned - quantity,
     };
 
     saveUserData(newBalance, newPortfolio);
-    toast.success(`Sold ${quantity} shares of ${stock.symbol} for $${totalValue.toFixed(2)}`);
+    toast.success(
+      `Sold ${quantity} shares of ${stock.symbol} for $${totalValue.toFixed(2)}`,
+    );
     setBuyAmounts({ ...buyAmounts, [stock.id]: 1 });
   };
 
   const calculatePortfolioValue = () => {
     return Object.entries(portfolio).reduce((total, [stockId, quantity]) => {
-      const stock = stocks.find(s => s.id === stockId);
+      const stock = stocks.find((s) => s.id === stockId);
       return total + (stock ? stock.currentPrice * quantity : 0);
     }, 0);
   };
@@ -285,12 +369,12 @@ const sendMessage = async (text: string) => {
     if (active && payload && payload.length) {
       const data = payload[0].payload;
       const date = new Date(data.timestamp);
-      const timeString = date.toLocaleTimeString([], { 
-        hour: '2-digit', 
-        minute: '2-digit',
-        second: '2-digit'
+      const timeString = date.toLocaleTimeString([], {
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
       });
-      
+
       return (
         <div className="bg-slate-900/95 border border-cyan-500/30 rounded-lg p-3 shadow-lg">
           <p className="text-slate-400 text-xs mb-1">{timeString}</p>
@@ -303,7 +387,6 @@ const sendMessage = async (text: string) => {
     return null;
   };
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-950 to-teal-950">
       {/* Header */}
@@ -314,28 +397,34 @@ const sendMessage = async (text: string) => {
               <TrendingUp className="w-5 h-5 text-slate-900" />
             </div>
             <div>
-              <h1 className="text-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">Stock Kidz</h1>
+              <h1 className="text-2xl bg-gradient-to-r from-emerald-400 to-cyan-400 bg-clip-text text-transparent">
+                Stock Kidz
+              </h1>
               <p className="text-sm text-slate-400">Hello, {username}!</p>
             </div>
           </div>
           <Button
-              onClick={() => setShowLeaderboard(true)}
-              variant="outline"
-              size="sm"
-            >
-              <BarChart3 className="w-4 h-4 mr-2" />
-              Leaderboard
+            onClick={() => setShowLeaderboard(true)}
+            variant="outline"
+            size="sm"
+          >
+            <BarChart3 className="w-4 h-4 mr-2" />
+            Leaderboard
           </Button>
           <Button onClick={onAccount} variant="outline" size="sm">
-            <User className="w-4 h-4 mr-2" />
+            <LogOut className="w-4 h-4 mr-2" />
             Account
+          </Button>
+
+          <Button onClick={onLeaderboard} variant="outline" size="sm">
+            <TrendingUp className="w-4 h-4 mr-2" />
+            Stock News
           </Button>
 
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
           </Button>
-
         </div>
       </div>
 
@@ -349,33 +438,40 @@ const sendMessage = async (text: string) => {
                 <BarChart3 className="w-5 h-5" />
                 Portfolio Performance
               </CardTitle>
-              <CardDescription>Real-time tracking of your total value</CardDescription>
+              <CardDescription>
+                Real-time tracking of your total value
+              </CardDescription>
             </CardHeader>
             <CardContent>
               <ResponsiveContainer width="100%" height={300}>
                 <LineChart data={performanceData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e3a4f" />
-                  <XAxis 
-                    dataKey="time" 
+                  <XAxis
+                    dataKey="time"
                     stroke="#94a3b8"
-                    tick={{ fill: '#94a3b8', fontSize: 11 }}
-                    tickLine={{ stroke: '#1e3a4f' }}
+                    tick={{ fill: "#94a3b8", fontSize: 11 }}
+                    tickLine={{ stroke: "#1e3a4f" }}
                     interval="preserveStartEnd"
                   />
-                  <YAxis 
+                  <YAxis
                     stroke="#94a3b8"
-                    tick={{ fill: '#94a3b8', fontSize: 12 }}
-                    tickLine={{ stroke: '#1e3a4f' }}
-                    domain={['dataMin - 100', 'dataMax + 100']}
+                    tick={{ fill: "#94a3b8", fontSize: 12 }}
+                    tickLine={{ stroke: "#1e3a4f" }}
+                    domain={["dataMin - 100", "dataMax + 100"]}
                   />
                   <Tooltip content={<CustomTooltip />} />
-                  <Line 
-                    type="monotone" 
-                    dataKey="value" 
-                    stroke="#6ee7b7" 
+                  <Line
+                    type="monotone"
+                    dataKey="value"
+                    stroke="#6ee7b7"
                     strokeWidth={3}
                     dot={false}
-                    activeDot={{ r: 6, fill: '#6ee7b7', stroke: '#34d399', strokeWidth: 2 }}
+                    activeDot={{
+                      r: 6,
+                      fill: "#6ee7b7",
+                      stroke: "#34d399",
+                      strokeWidth: 2,
+                    }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -392,7 +488,9 @@ const sendMessage = async (text: string) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl text-emerald-200">${balance.toFixed(2)}</p>
+                <p className="text-3xl text-emerald-200">
+                  ${balance.toFixed(2)}
+                </p>
               </CardContent>
             </Card>
 
@@ -404,12 +502,14 @@ const sendMessage = async (text: string) => {
                 </CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-3xl text-blue-200">${totalValue.toFixed(2)}</p>
+                <p className="text-3xl text-blue-200">
+                  ${totalValue.toFixed(2)}
+                </p>
                 <p className="text-sm text-slate-400 mt-2">
-                  {totalValue >= 10000 
-                    ? `+$${(totalValue - 10000).toFixed(2)}` 
+                  {totalValue >= 10000
+                    ? `+$${(totalValue - 10000).toFixed(2)}`
                     : `-$${(10000 - totalValue).toFixed(2)}`}
-                  {' from start'}
+                  {" from start"}
                 </p>
               </CardContent>
             </Card>
@@ -424,23 +524,39 @@ const sendMessage = async (text: string) => {
           </CardHeader>
           <CardContent>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {stocks.map(stock => (
-                <Card key={stock.id} className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-900/30 hover:border-cyan-500/50 transition-all">
+              {stocks.map((stock) => (
+                <Card
+                  key={stock.id}
+                  className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 border-cyan-900/30 hover:border-cyan-500/50 transition-all"
+                >
                   <CardHeader className="pb-3">
                     <div className="flex items-start justify-between">
                       <div>
-                        <CardTitle className="text-lg text-cyan-300">{stock.symbol}</CardTitle>
-                        <CardDescription className="text-sm">{stock.name}</CardDescription>
+                        <CardTitle className="text-lg text-cyan-300">
+                          {stock.symbol}
+                        </CardTitle>
+                        <CardDescription className="text-sm">
+                          {stock.name}
+                        </CardDescription>
                       </div>
-                      <Badge variant={stock.change >= 0 ? "default" : "destructive"} className="gap-1">
-                        {stock.change >= 0 ? <TrendingUp className="w-3 h-3" /> : <TrendingDown className="w-3 h-3" />}
+                      <Badge
+                        variant={stock.change >= 0 ? "default" : "destructive"}
+                        className="gap-1"
+                      >
+                        {stock.change >= 0 ? (
+                          <TrendingUp className="w-3 h-3" />
+                        ) : (
+                          <TrendingDown className="w-3 h-3" />
+                        )}
                         {stock.change.toFixed(2)}%
                       </Badge>
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <div>
-                      <p className="text-2xl text-emerald-300">${stock.currentPrice.toFixed(2)}</p>
+                      <p className="text-2xl text-emerald-300">
+                        ${stock.currentPrice.toFixed(2)}
+                      </p>
                       {portfolio[stock.id] > 0 && (
                         <p className="text-sm text-slate-400 mt-1">
                           You own: {portfolio[stock.id]} shares
@@ -452,7 +568,12 @@ const sendMessage = async (text: string) => {
                         type="number"
                         min="1"
                         value={buyAmounts[stock.id] || 1}
-                        onChange={(e) => setBuyAmounts({ ...buyAmounts, [stock.id]: parseInt(e.target.value) || 1 })}
+                        onChange={(e) =>
+                          setBuyAmounts({
+                            ...buyAmounts,
+                            [stock.id]: parseInt(e.target.value) || 1,
+                          })
+                        }
                         className="w-20"
                       />
                       <Button
@@ -471,10 +592,6 @@ const sendMessage = async (text: string) => {
                       >
                         Sell
                       </Button>
-
-                      
-
-
                     </div>
                   </CardContent>
                 </Card>
@@ -484,7 +601,7 @@ const sendMessage = async (text: string) => {
         </Card>
 
         {/* My Portfolio */}
-        {Object.keys(portfolio).some(id => portfolio[id] > 0) && (
+        {Object.keys(portfolio).some((id) => portfolio[id] > 0) && (
           <Card>
             <CardHeader>
               <CardTitle>My Portfolio</CardTitle>
@@ -495,18 +612,29 @@ const sendMessage = async (text: string) => {
                 {Object.entries(portfolio)
                   .filter(([_, quantity]) => quantity > 0)
                   .map(([stockId, quantity]) => {
-                    const stock = stocks.find(s => s.id === stockId);
+                    const stock = stocks.find((s) => s.id === stockId);
                     if (!stock) return null;
                     const value = stock.currentPrice * quantity;
                     return (
-                      <div key={stockId} className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-cyan-500/20 rounded-lg">
+                      <div
+                        key={stockId}
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 border border-cyan-500/20 rounded-lg"
+                      >
                         <div>
-                          <p className="font-medium text-cyan-300">{stock.symbol} - {stock.name}</p>
-                          <p className="text-sm text-slate-400">{quantity} shares</p>
+                          <p className="font-medium text-cyan-300">
+                            {stock.symbol} - {stock.name}
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            {quantity} shares
+                          </p>
                         </div>
                         <div className="text-right">
-                          <p className="font-medium text-emerald-300">${value.toFixed(2)}</p>
-                          <p className="text-sm text-slate-400">${stock.currentPrice.toFixed(2)} per share</p>
+                          <p className="font-medium text-emerald-300">
+                            ${value.toFixed(2)}
+                          </p>
+                          <p className="text-sm text-slate-400">
+                            ${stock.currentPrice.toFixed(2)} per share
+                          </p>
                         </div>
                       </div>
                     );
@@ -517,60 +645,78 @@ const sendMessage = async (text: string) => {
         )}
       </div>
       {showLeaderboard && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-    <div className="bg-slate-900 rounded-xl p-6 w-[400px] shadow-xl border border-cyan-500/30">
-      
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center gap-2">
-          <BarChart3 className="w-5 h-5 text-cyan-400" />
-          <h2 className="text-xl text-cyan-300 font-bold">Top Traders</h2>
-        </div>
-        <button onClick={() => setShowLeaderboard(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
-      </div>
-
-      <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
-        {leaderboardData.length > 0 ? (
-          leaderboardData.map((user, index) => (
-            <div 
-              key={user.username} 
-              className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
-                user.username === username 
-                ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' 
-                : 'bg-slate-800/40 border-slate-700/50'
-              }`}
-            >
-              <div className="flex items-center gap-4">
-                <span className={`text-sm font-bold w-6 ${index < 3 ? 'text-yellow-400' : 'text-slate-500'}`}>
-                  #{index + 1}
-                </span>
-                <span className="text-slate-200 font-semibold">{user.username}</span>
-                {user.username === username && <Badge variant="outline" className="text-[10px] h-4 border-cyan-500 text-cyan-400">YOU</Badge>}
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+          <div className="bg-slate-900 rounded-xl p-6 w-[400px] shadow-xl border border-cyan-500/30">
+            <div className="flex justify-between items-center mb-6">
+              <div className="flex items-center gap-2">
+                <BarChart3 className="w-5 h-5 text-cyan-400" />
+                <h2 className="text-xl text-cyan-300 font-bold">Top Traders</h2>
               </div>
-              <span className="text-emerald-400 font-mono font-bold">
-                ${user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
-              </span>
+              <button
+                onClick={() => setShowLeaderboard(false)}
+                className="text-slate-400 hover:text-white transition-colors"
+              >
+                ✕
+              </button>
             </div>
-          ))
-        ) : (
-          <div className="text-center py-10 text-slate-500">Loading rankings...</div>
-        )}
-      </div>
 
-      <Button 
-        onClick={() => setShowLeaderboard(false)} 
-        className="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-white"
-      >
-        Close
-      </Button>
+            <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+              {leaderboardData.length > 0 ? (
+                leaderboardData.map((user, index) => (
+                  <div
+                    key={user.username}
+                    className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                      user.username === username
+                        ? "bg-cyan-500/20 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]"
+                        : "bg-slate-800/40 border-slate-700/50"
+                    }`}
+                  >
+                    <div className="flex items-center gap-4">
+                      <span
+                        className={`text-sm font-bold w-6 ${index < 3 ? "text-yellow-400" : "text-slate-500"}`}
+                      >
+                        #{index + 1}
+                      </span>
+                      <span className="text-slate-200 font-semibold">
+                        {user.username}
+                      </span>
+                      {user.username === username && (
+                        <Badge
+                          variant="outline"
+                          className="text-[10px] h-4 border-cyan-500 text-cyan-400"
+                        >
+                          YOU
+                        </Badge>
+                      )}
+                    </div>
+                    <span className="text-emerald-400 font-mono font-bold">
+                      $
+                      {user.balance.toLocaleString(undefined, {
+                        minimumFractionDigits: 2,
+                      })}
+                    </span>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center py-10 text-slate-500">
+                  Loading rankings...
+                </div>
+              )}
+            </div>
 
-      
-    </div>
-  </div>
-)}
+            <Button
+              onClick={() => setShowLeaderboard(false)}
+              className="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-white"
+            >
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
 
-{showChat && (
-  <div
-    className="
+      {showChat && (
+        <div
+          className="
       fixed bottom-24 right-6
       w-80 h-[420px]
       bg-slate-900
@@ -580,62 +726,52 @@ const sendMessage = async (text: string) => {
       flex flex-col
       z-40
     "
-  >
-    {/* Header */}
-    <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/20">
-      <div className="flex items-center gap-2">
-        <MessageCircle className="w-5 h-5 text-emerald-400" />
-        <span className="text-emerald-300 font-semibold">Stock Kidz AI</span>
-      </div>
-      <button
-        onClick={() => setShowChat(false)}
-        className="text-slate-400 hover:text-white"
-      >
-        <X size={18} />
-      </button>
-    </div>
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/20">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-emerald-400" />
+              <span className="text-emerald-300 font-semibold">
+                Stock Kidz AI
+              </span>
+            </div>
+            <button
+              onClick={() => setShowChat(false)}
+              className="text-slate-400 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+          </div>
 
-    <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col gap-2">
-  {messages.length === 0 && (
-    <p className="text-slate-400">
-      👋 Hi {username}! Ask me about stocks, your portfolio, or trading tips.
-    </p>
-  )}
-  {messages.map((msg, index) => (
-    <div
-      key={index}
-      className={`p-2 rounded-md ${
-        msg.role === 'user' ? 'bg-emerald-500/20 self-end text-white' : 'bg-slate-800/50 self-start text-cyan-300'
-      }`}
-    >
-      {msg.content}
-    </div>
-  ))}
-</div>
+          {/* Messages area */}
+          <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300">
+            <p className="text-slate-400">
+              👋 Hi {username}! Ask me about stocks, your portfolio, or trading
+              tips.
+            </p>
+          </div>
 
+          {/* Input */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage(input);
+            }}
+            className="p-3 border-t border-cyan-500/20"
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"
+            />
+          </form>
+        </div>
+      )}
 
-    {/* Input */}
-    <form
-  onSubmit={e => {
-    e.preventDefault();
-    sendMessage(input);
-  }}
-  className="p-3 border-t border-cyan-500/20"
->
-  <input
-    value={input}
-    onChange={e => setInput(e.target.value)}
-    placeholder="Type a message..."
-    className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"
-  />
-</form>
-
-  </div>
-)}
-
-<Button
-  onClick={() => setShowChat(prev => !prev)}
-  className="
+      <Button
+        onClick={() => setShowChat((prev) => !prev)}
+        className="
     fixed bottom-6 right-6
     h-14 w-14 rounded-full
     bg-emerald-500 hover:bg-emerald-600
@@ -643,18 +779,14 @@ const sendMessage = async (text: string) => {
     flex items-center justify-center
     z-50
   "
-  title="Chat with Stock Kidz AI"
->
-  {showChat ? (
-    <X className="w-6 h-6 text-slate-900" />
-  ) : (
-    <MessageCircle className="w-6 h-6 text-slate-900" />
-  )}
-</Button>
-
-
-
-
+        title="Chat with Stock Kidz AI"
+      >
+        {showChat ? (
+          <X className="w-6 h-6 text-slate-900" />
+        ) : (
+          <MessageCircle className="w-6 h-6 text-slate-900" />
+        )}
+      </Button>
     </div>
   );
 }
