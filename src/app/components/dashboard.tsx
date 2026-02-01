@@ -50,6 +50,57 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
   const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState<
+  { role: 'user' | 'assistant'; content: string }[]
+>([]);
+
+const [input, setInput] = useState('');
+
+
+const sendMessage = async (text: string) => {
+  if (!text.trim()) return;
+
+  // show user message instantly
+  setMessages(prev => [...prev, { role: 'user', content: text }]);
+  setInput('');
+
+  try {
+    const res = await fetch(
+  `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+  {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      prompt: [
+        {
+          role: "user",
+          content: [
+            { type: "text", text }
+          ]
+        }
+      ]
+    }),
+  }
+);
+
+
+    const data = await res.json();
+
+    const reply =
+      data.candidates?.[0]?.content?.parts?.[0]?.text ||
+      'No response';
+
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: reply },
+    ]);
+  } catch (err) {
+    setMessages(prev => [
+      ...prev,
+      { role: 'assistant', content: '⚠️ Something went wrong.' },
+    ]);
+  }
+};
 
 
 
@@ -549,19 +600,21 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
     </div>
 
     {/* Input */}
-    <div className="p-3 border-t border-cyan-500/20">
-      <input
-        placeholder="Type a message..."
-        className="
-          w-full rounded-lg
-          bg-slate-800
-          border border-slate-700
-          px-3 py-2
-          text-sm text-white
-          focus:outline-none focus:ring-1 focus:ring-emerald-400
-        "
-      />
-    </div>
+    <form
+  onSubmit={e => {
+    e.preventDefault();
+    sendMessage(input);
+  }}
+  className="p-3 border-t border-cyan-500/20"
+>
+  <input
+    value={input}
+    onChange={e => setInput(e.target.value)}
+    placeholder="Type a message..."
+    className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"
+  />
+</form>
+
   </div>
 )}
 
