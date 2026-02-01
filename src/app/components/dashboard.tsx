@@ -64,37 +64,47 @@ const sendMessage = async (text: string) => {
   setMessages(prev => [...prev, { role: 'user', content: text }]);
   setInput('');
 
+  // Add "thinking" indicator
+  setMessages(prev => [...prev, { role: 'assistant', content: '💭 Thinking...' }]);
+
   try {
+    const stockContext = stocks.map(s => 
+      `${s.symbol} (${s.name}): $${s.currentPrice.toFixed(2)}, ${s.change >= 0 ? '+' : ''}${s.change.toFixed(2)}%`
+    ).join('\n');
+
+    const systemPrompt = `You are a helpful stock market assistant for kids. Current stocks:\n${stockContext}\n\nUser's balance: $${balance.toFixed(2)}\nKeep responses simple and educational.`;
+
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          prompt: [
-            {
-              role: "user",
-              content: [{ type: "text", text }]
-            }
-          ]
+          contents: [{
+            parts: [{
+              text: `${systemPrompt}\n\nUser question: ${text}`
+            }]
+          }]
         }),
       }
     );
 
-    // Parse the JSON response
     const data = await res.json();
+    const reply = data.candidates?.[0]?.content?.parts?.[0]?.text || 'Sorry, I couldn\'t process that.';
 
-    // Extract the assistant's reply
-    const reply = data.candidates?.[0]?.content?.[0]?.text || '⚠️ No response from Gemini.';
-
-    // Add assistant reply to messages
-    setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
+    // Replace "thinking" with actual response
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[updated.length - 1] = { role: 'assistant', content: reply };
+      return updated;
+    });
   } catch (err) {
-    console.error(err);
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: '⚠️ Something went wrong.' },
-    ]);
+    console.error('Gemini error:', err);
+    setMessages(prev => {
+      const updated = [...prev];
+      updated[updated.length - 1] = { role: 'assistant', content: '⚠️ Something went wrong. Try again!' };
+      return updated;
+    });
   }
 };
 
