@@ -30,13 +30,13 @@ export default function App() {
           <Dashboard
             username={currentUser}
             onLogout={handleLogout}
-            onAccount={() => setCurrentView('accounts')} // Switch to Accounts page
-            onLeaderboard={() => {}} // Optional: implement leaderboard later
+            onAccount={() => setCurrentView('accounts')} 
+            onLeaderboard={() => {}} 
           />
         ) : (
           <Accounts
             username={currentUser}
-            onBack={() => setCurrentView('dashboard')} // Back to Dashboard
+            onBack={() => setCurrentView('dashboard')} 
           />
         )
       ) : (

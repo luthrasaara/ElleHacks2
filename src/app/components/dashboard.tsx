@@ -23,7 +23,6 @@ interface DashboardProps {
   onLogout: () => void;
   onLeaderboard: () => void;
   onAccount: () => void;
-  onNews: () => void;
 };
 
 
@@ -64,7 +63,7 @@ Gold prices have been going up and down a lot recently! People are buying gold b
 ];
 
 
-export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews }: DashboardProps) {
+export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
@@ -90,6 +89,40 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews
 
   Gold can rise fast, but it can fall fast too, so be careful!`
     },
+    {
+      title: "Tech Stocks Rally on AI Optimism and Earnings Beats",
+      date: "2 day ago",
+      author: "Saara Luthra",
+      content: `The Nasdaq 100 ETF QQQ gains momentum as major technology companies report strong quarterly 
+      results driven by artificial intelligence investments.`
+
+    },
+    {
+      title: "Roblox Announces New Creator Monetization Features",
+      date: "2 day ago",
+      author: "Rithika Yerra",
+      content: `Roblox Corporation launches enhanced revenue-sharing 
+      tools for platform creators, aiming to attract more game developers and boost user engagement.`
+
+    },
+    {
+      title: "Oil Prices Stabilize Following OPEC Production Decisions",
+      date: "3 day ago",
+      author: "Angelin",
+      content: `The USO oil ETF steadies as OPEC+ maintains production levels.
+       Energy market remains volatile amid geopolitical tensions and supply concerns.`
+
+    },
+    {
+      title: "Retail Sector Shows Mixed Signals Heading into Holiday Season",
+      date: "4 day ago",
+      author: "Sophie",
+      content: `The Retail ETF XRT reflects cautious consumer spending patterns. 
+      Major retailers report varied performance as inflation impacts purchasing power.`
+
+    }
+
+
     // Add more articles here if you want
   ];
 
@@ -405,10 +438,6 @@ useEffect(() => {
             Account
           </Button>
 
-          <Button onClick={onNews} variant="outline" size="sm">
-            <Newspaper className="w-4 h-4 mr-2" />
-            Stock News
-          </Button>
 
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
