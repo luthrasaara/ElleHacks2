@@ -9,7 +9,6 @@ import {
   ResponsiveContainer,
 } from "recharts";
 
-// Single export, fixed duplicate function issue
 export function Accounts({
   username,
   onBack,
