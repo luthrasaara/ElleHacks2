@@ -75,7 +75,9 @@ const sendMessage = async (text: string) => {
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
         messages: [
-          { role: 'system', content: 'You are a friendly stock trading assistant for kids.' },
+          { role: 'system', content: 'You are Cashy, a friendly stock trading assistant aimed for kids in middle school. \
+            So speak in a concise, simple manner, be upbeat (but not to the point where its annoying). and dont be \
+            too complicated. The current stocks on the app are GLD, QQQ, RBLX, USO, XRT, and VHT.' },
           { role: 'user', content: text }
         ]
       }),
