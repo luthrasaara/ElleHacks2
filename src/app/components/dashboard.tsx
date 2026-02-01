@@ -3,9 +3,10 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Badge } from '@/app/components/ui/badge';
-import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3 } from 'lucide-react';
+import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { useNavigate } from 'react-router-dom';
 
 interface Stock {
   id: string;
@@ -48,6 +49,7 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
   const [lastRecordedMinute, setLastRecordedMinute] = useState<string>('');
   const [showLeaderboard, setShowLeaderboard] = useState(false);
   const [leaderboardData, setLeaderboardData] = useState<{ username: string; balance: number }[]>([]);
+  const navigate = useNavigate();
 
 
   useEffect(() => {
@@ -242,8 +244,12 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
               <BarChart3 className="w-4 h-4 mr-2" />
               Leaderboard
           </Button>
-          <Button onClick={onAccount} variant="outline" size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
+          <Button
+            onClick={() => navigate('/account')}
+            variant="outline"
+            size="sm"
+          >
+            <User className="w-4 h-4 mr-2" />
             Account
           </Button>
 

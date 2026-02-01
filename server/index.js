@@ -2,6 +2,23 @@ import express from 'express';
 import { MongoClient } from 'mongodb';
 import dotenv from 'dotenv';
 import cors from 'cors';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Dashboard from './Dashboard';
+import AccountPage from './AccountPage';
+
+function App() {
+  return (
+    <Router>
+      <Routes>
+        <Route path="/" element={<Dashboard />} />
+        <Route path="/account" element={<AccountPage />} />
+      </Routes>
+    </Router>
+  );
+}
+
+export default App;
+
 
 dotenv.config();
 const app = express();
