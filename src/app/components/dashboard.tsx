@@ -60,17 +60,17 @@ const [input, setInput] = useState('');
 const sendMessage = async (text: string) => {
   if (!text.trim()) return;
 
+  // 1️⃣ Show user message instantly
   setMessages(prev => [...prev, { role: 'user', content: text }]);
   setInput('');
 
   try {
+    // 2️⃣ Call OpenRouter API
     const res = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: {
         'Authorization': `Bearer ${import.meta.env.VITE_OPENROUTER_API_KEY}`,
         'Content-Type': 'application/json',
-        'HTTP-Referer': 'http://localhost:5173', // required by OpenRouter
-        'X-Title': 'Stock Kidz'
       },
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
@@ -78,19 +78,32 @@ const sendMessage = async (text: string) => {
           { role: 'system', content: 'You are a friendly stock trading assistant for kids.' },
           { role: 'user', content: text }
         ]
-      })
+      }),
     });
 
+    // 3️⃣ Parse JSON response
     const data = await res.json();
-    const reply =
-      data.choices?.[0]?.message?.content ?? '⚠️ No response from OpenRouter.';
+    console.log('OpenRouter response:', data); // 🔍 debug
 
+    // 4️⃣ Safely extract assistant reply
+    let reply = '⚠️ No response from OpenRouter.';
+
+    if (data.choices && data.choices.length > 0) {
+      const choice = data.choices[0];
+      if (choice.message?.content) {
+        reply = choice.message.content;
+      } else if (choice.text) {
+        reply = choice.text;
+      }
+    }
+
+    // 5️⃣ Add assistant reply to messages
     setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
   } catch (err) {
-    console.error(err);
+    console.error('OpenRouter fetch error:', err);
     setMessages(prev => [
       ...prev,
-      { role: 'assistant', content: '⚠️ Something went wrong.' }
+      { role: 'assistant', content: '⚠️ Something went wrong.' },
     ]);
   }
 };
