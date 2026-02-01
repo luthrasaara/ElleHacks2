@@ -48,7 +48,6 @@
     "embla-carousel-react": "8.6.0",
     "express": "^5.2.1",
     "flask": "^0.2.10",
-    "genai": "^0.0.18",
     "input-otp": "1.4.2",
     "lucide-react": "0.487.0",
     "mongodb": "^7.0.0",
