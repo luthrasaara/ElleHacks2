@@ -4,6 +4,7 @@ import { Dashboard } from '@/app/components/dashboard';
 import { Accounts } from '@/app/components/accounts';
 import { Toaster } from '@/app/components/ui/sonner';
 
+
 export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'accounts'>('dashboard');
