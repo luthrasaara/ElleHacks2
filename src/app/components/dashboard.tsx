@@ -101,7 +101,22 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
   
     return () => clearInterval(interval);
   }, [username]);
-  
+  useEffect(() => {
+  const fetchLeaderboard = async () => {
+    if (showLeaderboard) {
+      try {
+        const res = await fetch('http://127.0.0.1:5000/api/leaderboard');
+        const data = await res.json();
+        setLeaderboardData(data);
+      } catch (err) {
+        console.error("Leaderboard fetch failed:", err);
+        toast.error("Could not load leaderboard");
+      }
+    }
+  };
+
+  fetchLeaderboard();
+}, [showLeaderboard]);
   // Update performance data only when a new minute arrives
   useEffect(() => {
     const currentTotalValue = balance + calculatePortfolioValue();
@@ -443,27 +458,51 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
         )}
       </div>
       {showLeaderboard && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div className="bg-slate-900 rounded-xl p-6 w-[400px] shadow-xl border border-cyan-500/30">
       
-      {/* Header */}
-      <div className="flex justify-between items-center mb-4">
-        <h2 className="text-lg text-cyan-300 font-semibold">
-          Leaderboard
-        </h2>
-        <button
-          onClick={() => setShowLeaderboard(false)}
-          className="text-slate-400 hover:text-white"
-        >
-          ✕
-        </button>
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center gap-2">
+          <BarChart3 className="w-5 h-5 text-cyan-400" />
+          <h2 className="text-xl text-cyan-300 font-bold">Top Traders</h2>
+        </div>
+        <button onClick={() => setShowLeaderboard(false)} className="text-slate-400 hover:text-white transition-colors">✕</button>
       </div>
 
-      {/* Blank content area */}
-      <div className="h-40 flex items-center justify-center text-slate-500">
-        Coming soon…
+      <div className="space-y-3 max-h-80 overflow-y-auto pr-2 custom-scrollbar">
+        {leaderboardData.length > 0 ? (
+          leaderboardData.map((user, index) => (
+            <div 
+              key={user.username} 
+              className={`flex items-center justify-between p-3 rounded-lg border transition-all ${
+                user.username === username 
+                ? 'bg-cyan-500/20 border-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' 
+                : 'bg-slate-800/40 border-slate-700/50'
+              }`}
+            >
+              <div className="flex items-center gap-4">
+                <span className={`text-sm font-bold w-6 ${index < 3 ? 'text-yellow-400' : 'text-slate-500'}`}>
+                  #{index + 1}
+                </span>
+                <span className="text-slate-200 font-semibold">{user.username}</span>
+                {user.username === username && <Badge variant="outline" className="text-[10px] h-4 border-cyan-500 text-cyan-400">YOU</Badge>}
+              </div>
+              <span className="text-emerald-400 font-mono font-bold">
+                ${user.balance.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+              </span>
+            </div>
+          ))
+        ) : (
+          <div className="text-center py-10 text-slate-500">Loading rankings...</div>
+        )}
       </div>
 
+      <Button 
+        onClick={() => setShowLeaderboard(false)} 
+        className="w-full mt-6 bg-slate-800 hover:bg-slate-700 text-white"
+      >
+        Close
+      </Button>
     </div>
   </div>
 )}

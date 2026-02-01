@@ -90,18 +90,21 @@ app.get('/api/user/:username', async (req, res) => {
 app.get('/api/leaderboard', async (req, res) => {
   try {
     const db = client.db('StockKidZ');
-    // .find({}) gets everyone
-    // .project({...}) only grabs the fields we want (1 = yes, 0 = no)
-    // .sort({ balance: -1 }) puts the richest kids at the top
-    const leaderboard = await db.collection('users')
+    const users = db.collection('users');
+
+    // 1. Get all users
+    // 2. Only pull username and balance (projection)
+    // 3. Sort by balance: -1 (Highest to Lowest)
+    const topUsers = await users
       .find({})
-      .project({ username: 1, balance: 1, _id: 0 }) 
+      .project({ username: 1, balance: 1, _id: 0 })
       .sort({ balance: -1 })
       .toArray();
 
-    res.json(leaderboard);
+    res.status(200).json(topUsers);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error("Leaderboard Error:", err);
+    res.status(500).json({ error: "Failed to fetch leaderboard" });
   }
 });
 
