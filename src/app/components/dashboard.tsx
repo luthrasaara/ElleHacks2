@@ -252,10 +252,14 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
               <BarChart3 className="w-4 h-4 mr-2" />
               Leaderboard
           </Button>
-          <Button onClick={onAccount} variant="outline" size="sm">
-            <User className="w-4 h-4 mr-2" />
-            Account
-          </Button>
+          <Button
+              onClick={onAccount}  // <-- calls the App function to switch view
+              variant="outline"
+              size="sm"
+            >
+              <User className="w-4 h-4 mr-2" />
+              Account
+            </Button>
 
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
