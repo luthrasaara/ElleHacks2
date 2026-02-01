@@ -118,6 +118,50 @@ export function Dashboard({
   const [leaderboardData, setLeaderboardData] = useState<
     { username: string; balance: number }[]
   >([]);
+  const [showChat, setShowChat] = useState(false);
+  const [messages, setMessages] = useState<
+    { role: "user" | "assistant"; content: string }[]
+  >([]);
+
+  const [input, setInput] = useState("");
+
+  const sendMessage = async (text: string) => {
+    if (!text.trim()) return;
+
+    // show user message instantly
+    setMessages((prev) => [...prev, { role: "user", content: text }]);
+    setInput("");
+
+    try {
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            prompt: [
+              {
+                role: "user",
+                content: [{ type: "text", text }],
+              },
+            ],
+          }),
+        },
+      );
+
+      const data = await res.json();
+
+      const reply =
+        data.candidates?.[0]?.content?.parts?.[0]?.text || "No response";
+
+      setMessages((prev) => [...prev, { role: "assistant", content: reply }]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: "⚠️ Something went wrong." },
+      ]);
+    }
+  };
 
   useEffect(() => {
     const loadData = async () => {
@@ -656,6 +700,80 @@ export function Dashboard({
           </div>
         </div>
       )}
+
+      {showChat && (
+        <div
+          className="
+      fixed bottom-24 right-6
+      w-80 h-[420px]
+      bg-slate-900
+      border border-cyan-500/30
+      rounded-2xl
+      shadow-2xl
+      flex flex-col
+      z-40
+    "
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-cyan-500/20">
+            <div className="flex items-center gap-2">
+              <MessageCircle className="w-5 h-5 text-emerald-400" />
+              <span className="text-emerald-300 font-semibold">
+                Stock Kidz AI
+              </span>
+            </div>
+            <button
+              onClick={() => setShowChat(false)}
+              className="text-slate-400 hover:text-white"
+            >
+              <X size={18} />
+            </button>
+          </div>
+
+          {/* Messages area */}
+          <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300">
+            <p className="text-slate-400">
+              👋 Hi {username}! Ask me about stocks, your portfolio, or trading
+              tips.
+            </p>
+          </div>
+
+          {/* Input */}
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              sendMessage(input);
+            }}
+            className="p-3 border-t border-cyan-500/20"
+          >
+            <input
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              placeholder="Type a message..."
+              className="w-full rounded-lg bg-slate-800 px-3 py-2 text-sm text-white"
+            />
+          </form>
+        </div>
+      )}
+
+      <Button
+        onClick={() => setShowChat((prev) => !prev)}
+        className="
+    fixed bottom-6 right-6
+    h-14 w-14 rounded-full
+    bg-emerald-500 hover:bg-emerald-600
+    shadow-lg shadow-emerald-500/40
+    flex items-center justify-center
+    z-50
+  "
+        title="Chat with Stock Kidz AI"
+      >
+        {showChat ? (
+          <X className="w-6 h-6 text-slate-900" />
+        ) : (
+          <MessageCircle className="w-6 h-6 text-slate-900" />
+        )}
+      </Button>
     </div>
   );
 }
