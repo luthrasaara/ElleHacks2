@@ -51,57 +51,57 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
 
 
   useEffect(() => {
-  const loadData = async () => {
-    // 1. Get Balance from DB
-    try {
-      const res = await fetch(`http://localhost:5000/api/user/${username}`);
-      const data = await res.json();
-      setBalance(data.balance ?? 10000);
-    } catch (err) {
-      console.error("Balance fetch failed:", err);
-      setBalance(10000);
-    }
-
-    // 2. Get Portfolio from LocalStorage
-    const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
-    if (savedPortfolio) {
-      setPortfolio(JSON.parse(savedPortfolio));
-    }
-  };
-
-  // 3. Get Real Prices from Flask
-  const fetchRealPrices = async () => {
-    try {
-      const res = await fetch('http://localhost:5000/prices');
-      const apiData = await res.json();
-      
-      setStocks(prevStocks =>
-        prevStocks.map(stock => {
-          const updatedInfo = apiData[stock.id];
-          if (updatedInfo) {
-            const change = ((updatedInfo.currentPrice - updatedInfo.basePrice) / updatedInfo.basePrice) * 100;
-            return {
-              ...stock,
-              currentPrice: updatedInfo.currentPrice,
-              basePrice: updatedInfo.basePrice,
-              change: parseFloat(change.toFixed(2))
-            };
-          }
-          return stock;
-        })
-      );
-    } catch (error) {
-      console.error('Failed to fetch real prices:', error);
-    }
-  };
-
-  loadData();
-  fetchRealPrices(); // Initial fetch
+    const loadData = async () => {
+      // 1. Get Balance from DB
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/user/${username}`);
+        const data = await res.json();
+        setBalance(data.balance ?? 10000);
+      } catch (err) {
+        console.error("Balance fetch failed:", err);
+        setBalance(10000);
+      }
   
-  const priceInterval = setInterval(fetchRealPrices, 30000); // Update every 30s
+      // 2. Get Portfolio from LocalStorage
+      const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
+      if (savedPortfolio) {
+        setPortfolio(JSON.parse(savedPortfolio));
+      }
+    };
   
-  return () => clearInterval(priceInterval);
-}, [username]);
+    loadData(); // ← FIX: Actually call it!
+  
+    // 3. Get Real Prices from Flask
+    const fetchRealPrices = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:5000/prices'); // ← FIX: Correct endpoint
+        const data = await res.json(); // ← FIX: Renamed from apiData
+        
+        setStocks(prevStocks =>
+          prevStocks.map(stock => {
+            const apiData = data[stock.id];
+            if (apiData) {
+              const change = ((apiData.currentPrice - apiData.basePrice) / apiData.basePrice) * 100;
+              return {
+                ...stock,
+                currentPrice: apiData.currentPrice,
+                basePrice: apiData.basePrice,
+                change: parseFloat(change.toFixed(2))
+              };
+            }
+            return stock;
+          })
+        );
+      } catch (error) {
+        console.error('Failed to fetch real prices:', error);
+      }
+    };
+  
+    fetchRealPrices(); // Initial fetch
+    const interval = setInterval(fetchRealPrices, 30000); // Every 30 seconds
+  
+    return () => clearInterval(interval);
+  }, [username]);
   useEffect(() => {
   const fetchLeaderboard = async () => {
     if (showLeaderboard) {
@@ -269,7 +269,7 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
               Leaderboard
           </Button>
           <Button onClick={onAccount} variant="outline" size="sm">
-            <LogOut className="w-4 h-4 mr-2" />
+            <User className="w-4 h-4 mr-2" />
             Account
           </Button>
 
