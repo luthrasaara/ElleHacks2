@@ -6,8 +6,6 @@
   ## Running the code
 
   Run `npm i` to install the dependencies.
-
-  Run `npm run dev` to start the development server.
   
   ## In folder Server
   Run `npm init -y`
@@ -17,5 +15,8 @@
   ## In the root folder
   `python app.py`
 
-  ** Important add the api key in discord to .env (create this file in /server if its not there)
+  ## In the root folder, in a seperate terminal
+  `npm run dev`
+
+  
 
