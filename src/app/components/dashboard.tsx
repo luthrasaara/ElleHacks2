@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app/components/ui/card';
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
@@ -7,6 +7,7 @@ import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User } fr
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { MessageCircle, X } from 'lucide-react';
+
 
 interface Stock {
   id: string;
@@ -55,6 +56,15 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: Dash
 >([]);
 
 const [input, setInput] = useState('');
+const messagesEndRef = useRef<HTMLDivElement>(null);
+
+const PRE_MADE_QUESTIONS = [
+  "How is my portfolio doing?",
+  "Which stock should I buy next?",
+  "Explain the stock GLD in simple terms",
+  "Give me a trading tip for today",
+  "How much money have I made/lost?"
+];
 
 
 const sendMessage = async (text: string) => {
@@ -107,6 +117,11 @@ const sendMessage = async (text: string) => {
     ]);
   }
 };
+
+useEffect(() => {
+  messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+}, [messages]);
+
 
 
   useEffect(() => {
@@ -596,23 +611,44 @@ const sendMessage = async (text: string) => {
       </button>
     </div>
 
-    <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col gap-2">
+<div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col custom-scrollbar">
+
   {messages.length === 0 && (
     <p className="text-slate-400">
       👋 Hi {username}! Ask me about stocks, your portfolio, or trading tips.
     </p>
   )}
+
+  <div className="px-3 pb-2 flex flex-wrap gap-2 overflow-x-auto">
+    {PRE_MADE_QUESTIONS.map((q, i) => (
+      <button
+        key={i}
+        onClick={() => sendMessage(q)}
+        className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs px-2 py-1 rounded-full whitespace-nowrap"
+      >
+        {q}
+      </button>
+    ))}
+  </div>
+
   {messages.map((msg, index) => (
     <div
       key={index}
       className={`p-2 rounded-md ${
-        msg.role === 'user' ? 'bg-emerald-500/20 self-end text-white' : 'bg-slate-800/50 self-start text-cyan-300'
+        msg.role === 'user'
+          ? 'bg-emerald-500/20 self-end text-white'
+          : 'bg-slate-800/50 self-start text-cyan-300'
       }`}
     >
       {msg.content}
     </div>
   ))}
+
+  {/* 👇 THIS MUST BE LAST */}
+  <div ref={messagesEndRef} />
+
 </div>
+
 
 
     {/* Input */}
