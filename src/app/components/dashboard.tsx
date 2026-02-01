@@ -70,10 +70,12 @@ const PRE_MADE_QUESTIONS = [
 
 const sendMessage = async (text: string) => {
   if (!text.trim()) return;
+  
 
   // 1️⃣ Show user message instantly
   setMessages(prev => [...prev, { role: 'user', content: text }]);
   setInput('');
+  
 
   try {
     // 2️⃣ Call OpenRouter API
