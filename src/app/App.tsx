@@ -4,17 +4,13 @@ import { Dashboard } from '@/app/components/dashboard';
 import { Accounts } from '@/app/components/accounts';
 import { Toaster } from '@/app/components/ui/sonner';
 
-
 export default function App() {
   const [currentUser, setCurrentUser] = useState<string | null>(null);
   const [currentView, setCurrentView] = useState<'dashboard' | 'accounts'>('dashboard');
 
   useEffect(() => {
-    // Check if user is already logged in
     const savedUser = sessionStorage.getItem('currentUser');
-    if (savedUser) {
-      setCurrentUser(savedUser);
-    }
+    if (savedUser) setCurrentUser(savedUser);
   }, []);
 
   const handleLogin = (username: string) => {
@@ -30,17 +26,17 @@ export default function App() {
   return (
     <>
       {currentUser ? (
-        // Check currentView to decide which component to show
         currentView === 'dashboard' ? (
-          <Dashboard 
-            username={currentUser} 
-            onLogout={handleLogout} 
-            onNavigateAccounts={() => setCurrentView('accounts')} // Pass the "switch" function
+          <Dashboard
+            username={currentUser}
+            onLogout={handleLogout}
+            onAccount={() => setCurrentView('accounts')} // Switch to Accounts page
+            onLeaderboard={() => {}} // Optional: implement leaderboard later
           />
         ) : (
-          <Accounts 
-            username={currentUser} 
-            onBack={() => setCurrentView('dashboard')} // Pass a way to get back
+          <Accounts
+            username={currentUser}
+            onBack={() => setCurrentView('dashboard')} // Back to Dashboard
           />
         )
       ) : (
