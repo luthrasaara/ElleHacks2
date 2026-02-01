@@ -60,49 +60,43 @@ const [input, setInput] = useState('');
 const sendMessage = async (text: string) => {
   if (!text.trim()) return;
 
-  // show user message instantly
+  // Show user message instantly
   setMessages(prev => [...prev, { role: 'user', content: text }]);
   setInput('');
 
   try {
     const res = await fetch(
-  `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
-  {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      prompt: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text }
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${import.meta.env.VITE_GEMINI_API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          prompt: [
+            {
+              role: "user",
+              content: [{ type: "text", text }]
+            }
           ]
-        }
-      ]
-    }),
-  }
-);
+        }),
+      }
+    );
 
-
+    // Parse the JSON response
     const data = await res.json();
 
-    const reply =
-      data.candidates?.[0]?.content?.parts?.[0]?.text ||
-      'No response';
+    // Extract the assistant's reply
+    const reply = data.candidates?.[0]?.content?.[0]?.text || '⚠️ No response from Gemini.';
 
-    setMessages(prev => [
-      ...prev,
-      { role: 'assistant', content: reply },
-    ]);
+    // Add assistant reply to messages
+    setMessages(prev => [...prev, { role: 'assistant', content: reply }]);
   } catch (err) {
+    console.error(err);
     setMessages(prev => [
       ...prev,
       { role: 'assistant', content: '⚠️ Something went wrong.' },
     ]);
   }
 };
-
-
 
   useEffect(() => {
     const loadData = async () => {
@@ -591,13 +585,24 @@ const sendMessage = async (text: string) => {
       </button>
     </div>
 
-    {/* Messages area */}
-    <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300">
-      <p className="text-slate-400">
-        👋 Hi {username}!  
-        Ask me about stocks, your portfolio, or trading tips.
-      </p>
+    <div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col gap-2">
+  {messages.length === 0 && (
+    <p className="text-slate-400">
+      👋 Hi {username}! Ask me about stocks, your portfolio, or trading tips.
+    </p>
+  )}
+  {messages.map((msg, index) => (
+    <div
+      key={index}
+      className={`p-2 rounded-md ${
+        msg.role === 'user' ? 'bg-emerald-500/20 self-end text-white' : 'bg-slate-800/50 self-start text-cyan-300'
+      }`}
+    >
+      {msg.content}
     </div>
+  ))}
+</div>
+
 
     {/* Input */}
     <form
