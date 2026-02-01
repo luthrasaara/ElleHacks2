@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/app
 import { Button } from '@/app/components/ui/button';
 import { Input } from '@/app/components/ui/input';
 import { Badge } from '@/app/components/ui/badge';
-import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User } from 'lucide-react';
+import { LogOut, TrendingUp, TrendingDown, Wallet, Package, BarChart3, User, Newspaper } from 'lucide-react';
 import { toast } from 'sonner';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 import { MessageCircle, X } from 'lucide-react';
@@ -23,6 +23,7 @@ interface DashboardProps {
   onLogout: () => void;
   onLeaderboard: () => void;
   onAccount: () => void;
+  onNews: () => void;
 };
 
 
@@ -41,7 +42,7 @@ const INITIAL_STOCKS: Stock[] = [
   { id: '6', name: 'VHT', symbol: '🩺 Health', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
-export function Dashboard({ username, onLogout, onLeaderboard, onAccount }: DashboardProps) {
+export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
   const [portfolio, setPortfolio] = useState<Record<string, number>>({});
@@ -349,6 +350,11 @@ useEffect(() => {
             Account
           </Button>
 
+          <Button onClick={onNews} variant="outline" size="sm">
+            <Newspaper className="w-4 h-4 mr-2" />
+            Stock News
+          </Button>
+
           <Button onClick={onLogout} variant="outline" size="sm">
             <LogOut className="w-4 h-4 mr-2" />
             Logout
@@ -613,7 +619,7 @@ useEffect(() => {
       </button>
     </div>
 
-<div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 flex flex-col custom-scrollbar">
+<div className="flex-1 p-4 overflow-y-auto text-sm text-slate-300 custom-scrollbar">
 
   {messages.length === 0 && (
     <p className="text-slate-400">
