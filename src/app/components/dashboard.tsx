@@ -42,6 +42,28 @@ const INITIAL_STOCKS: Stock[] = [
   { id: '6', name: 'VHT', symbol: '🩺 Health', basePrice: 55, currentPrice: 55, change: 0 },
 ];
 
+const NEWS_ARTICLES = [
+  {
+    title: "Why Gold Prices Went Up and Down",
+    date: "1 day ago",
+    author: "Faarea Masud",
+    content: `
+Gold prices have been going up and down a lot recently! People are buying gold because it feels safe when the world seems uncertain.
+
+- **Why it went up:**  
+  Investors were worried about politics in the US and around the world, so they wanted something safe like gold. Wars and trade tensions also made gold more popular.
+
+- **Why it went down:**  
+  Some reports suggested the US might make things more stable, so people felt less need to rush to gold.
+
+- **Cool facts:**  
+  Gold is still worth way more than last year! China and some other countries are buying a lot of gold too.  
+  Gold is nice because it isn’t tied to a company or debt—so it’s safer.
+`
+  }
+];
+
+
 export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews }: DashboardProps) {
   const [stocks, setStocks] = useState<Stock[]>(INITIAL_STOCKS);
   const [balance, setBalance] = useState(0);
@@ -54,7 +76,25 @@ export function Dashboard({ username, onLogout, onLeaderboard, onAccount, onNews
   const [showChat, setShowChat] = useState(false);
   const [showLearn, setShowLearn] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState<string | null>(null);
-  const [showSuggestions, setShowSuggestions] = useState(true);
+
+  // News articles (simplified for kids)
+  const NEWS_ARTICLES = [
+    {
+      title: "Gold Prices Reach Record Highs!",
+      date: "1 day ago",
+      author: "Faarea Masud",
+      content: `Gold prices have gone super high because people are worried about world events.
+  - Wars in Ukraine and Gaza make gold look safe. 
+  - Trump's trade policies caused uncertainty.
+  - Central banks are buying lots of gold too!
+
+  Gold can rise fast, but it can fall fast too, so be careful!`
+    },
+    // Add more articles here if you want
+  ];
+
+  // Track which article modal is open
+  const [selectedArticle, setSelectedArticle] = useState<null | typeof NEWS_ARTICLES[0]>(null);
 
 
   const LEARN_TERMS: Record<string, string> = {
@@ -81,45 +121,6 @@ const PRE_MADE_QUESTIONS = [
   "How much money have I made/lost?"
 ];
 
-const buildUserContext = () => {
-  const holdings = Object.entries(portfolio)
-    .filter(([_, qty]) => qty > 0)
-    .map(([stockId, qty]) => {
-      const stock = stocks.find(s => s.id === stockId);
-      if (!stock) return null;
-
-      return `${stock.symbol}: ${qty} shares at $${stock.currentPrice.toFixed(2)}`;
-    })
-    .filter(Boolean)
-    .join(', ');
-
-  const totalPortfolio = calculatePortfolioValue();
-  const totalValue = balance + totalPortfolio;
-  const profitLoss = totalValue - 10000;
-
-  return `
-Cash balance: $${balance.toFixed(2)}
-Portfolio value: $${totalPortfolio.toFixed(2)}
-Total value: $${totalValue.toFixed(2)}
-Profit/Loss from start: ${profitLoss >= 0 ? '+' : '-'}$${Math.abs(profitLoss).toFixed(2)}
-
-Holdings:
-${holdings || 'No stocks owned'}
-`;
-};
-
-
-
-const buildStockDefinitions = () => {
-  return stocks.map(stock => `
-${stock.symbol} (${stock.name})
-• Theme: ${stock.symbol.replace(/^[^a-zA-Z]+/, '')}
-• Current price: $${stock.currentPrice.toFixed(2)}
-• Change: ${stock.change}%
-`).join('\n');
-};
-
-
 
 const sendMessage = async (text: string) => {
   if (!text.trim()) return;
@@ -141,27 +142,11 @@ const sendMessage = async (text: string) => {
       body: JSON.stringify({
         model: 'openai/gpt-3.5-turbo', // or any OpenRouter-supported model
         messages: [
-  {
-    role: 'system',
-    content: `
-You are Trader Joe (Jo for short), a friendly stock trading assistant for kids.
-
-This is a STOCK TRADING GAME with MADE-UP STOCKS.
-Do NOT reference real-world stock markets.
-
-GAME STOCKS:
-${buildStockDefinitions()}
-
-CURRENT PLAYER STATUS:
-${buildUserContext()}
-
-Explain answers using ONLY this game data.
-Keep explanations simple, upbeat, and clear.
-`
-  },
-  { role: 'user', content: text }
-]
-
+          { role: 'system', content: 'You are Trader Joe (Jo for short), a friendly stock trading assistant aimed for kids in middle school. \
+            So speak in a concise, simple manner, be upbeat (but not to the point where its annoying). and dont be \
+            too complicated. The current stocks on the app are GLD, QQQ, RBLX, USO, XRT, and VHT.' },
+          { role: 'user', content: text }
+        ]
       }),
     });
 
@@ -189,11 +174,7 @@ Keep explanations simple, upbeat, and clear.
       ...prev,
       { role: 'assistant', content: '⚠️ Something went wrong.' },
     ]);
-
-    setShowSuggestions(true);
-    
   }
-  
 };
 
 useEffect(() => {
@@ -622,6 +603,30 @@ useEffect(() => {
             </CardContent>
           </Card>
         )}
+
+        <Card>
+          <CardHeader>
+            <CardTitle>Stock News</CardTitle>
+            <CardDescription>Click a headline to read more</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-2">
+              {NEWS_ARTICLES.map((article, idx) => (
+                <Card
+                  key={idx}
+                  className="cursor-pointer hover:bg-cyan-500/10 transition-all"
+                  onClick={() => setSelectedArticle(article)}
+                >
+                  <CardHeader>
+                    <CardTitle className="text-cyan-300">{article.title}</CardTitle>
+                    <CardDescription className="text-slate-400 text-sm">{article.date}</CardDescription>
+                  </CardHeader>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
       </div>
       {showLeaderboard && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
@@ -675,6 +680,26 @@ useEffect(() => {
   </div>
 )}
 {/* Learn Modal ← ADD THIS HERE */}
+
+{selectedArticle && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
+    <div className="bg-slate-900 rounded-xl p-6 w-[400px] shadow-xl border border-cyan-500/30">
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl text-cyan-300 font-bold">{selectedArticle.title}</h2>
+        <button onClick={() => setSelectedArticle(null)} className="text-slate-400 hover:text-white">✕</button>
+      </div>
+      <p className="text-sm text-slate-400 mb-2">By {selectedArticle.author} • {selectedArticle.date}</p>
+      <p className="text-slate-300 text-sm whitespace-pre-line">{selectedArticle.content}</p>
+      <Button 
+        onClick={() => setSelectedArticle(null)} 
+        className="w-full mt-4 text-slate-300 bg-slate-800 hover:bg-cyan-500/20"
+      >
+        Close
+      </Button>
+    </div>
+  </div>
+)}
+
 {showLearn && (
   <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
     <div className="bg-slate-900 rounded-xl p-6 w-[420px] shadow-xl border border-emerald-500/30">
@@ -753,16 +778,12 @@ useEffect(() => {
   <div className="px-3 pb-2 flex flex-wrap gap-2 overflow-x-auto">
     {PRE_MADE_QUESTIONS.map((q, i) => (
       <button
-  key={i}
-  onClick={() => {
-    setShowSuggestions(false);
-    sendMessage(q);
-  }}
-  className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs px-2 py-1 rounded-full whitespace-nowrap"
->
-  {q}
-</button>
-
+        key={i}
+        onClick={() => sendMessage(q)}
+        className="bg-emerald-500 hover:bg-emerald-600 text-slate-900 text-xs px-2 py-1 rounded-full whitespace-nowrap"
+      >
+        {q}
+      </button>
     ))}
   </div>
 
