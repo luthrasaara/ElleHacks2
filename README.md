@@ -1,7 +1,7 @@
 
   # Stock Simulator App
 
-  This is a code bundle for Stock Simulator App. The original project is available at https://www.figma.com/design/N28lb3ZIUHgMxRxanSAt22/Stock-Simulator-App.
+  The Figma for this project is available at https://www.figma.com/design/N28lb3ZIUHgMxRxanSAt22/Stock-Simulator-App.
 
   ## Running the code
 
