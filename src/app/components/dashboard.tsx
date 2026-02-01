@@ -48,47 +48,57 @@ export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps)
   const [showLeaderboard, setShowLeaderboard] = useState(false);
 
   useEffect(() => {
-  const loadData = async () => {
-    // 1. Get Balance from DB
-    try {
-      const res = await fetch(`http://localhost:5000/api/user/${username}`);
-      const data = await res.json();
-      setBalance(data.balance ?? 10000);
-    } catch {
-      setBalance(10000); // Fallback
-    }
-
-    // 2. Get Portfolio from LocalStorage
-    const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
-    if (savedPortfolio) {
-      setPortfolio(JSON.parse(savedPortfolio));
-    }
-  };
-
-  loadData();
-
-  // --- RE-INSERTED PRICE SIMULATION LOGIC ---
-  const interval = setInterval(() => {
-    setStocks(prevStocks =>
-      prevStocks.map(stock => {
-        // Random change between -5% and +5%
-        const changePercent = (Math.random() - 0.5) * 0.1; 
-        const newPrice = stock.currentPrice * (1 + changePercent);
-        // Calculate % change relative to the very first price (basePrice)
-        const change = ((newPrice - stock.basePrice) / stock.basePrice) * 100;
+    const loadData = async () => {
+      // 1. Get Balance from DB
+      try {
+        const res = await fetch(`http://127.0.0.1:5000/api/user/${username}`);
+        const data = await res.json();
+        setBalance(data.balance ?? 10000);
+      } catch {
+        setBalance(10000);
+      }
+  
+      // 2. Get Portfolio from LocalStorage
+      const savedPortfolio = localStorage.getItem(`portfolio_${username}`);
+      if (savedPortfolio) {
+        setPortfolio(JSON.parse(savedPortfolio));
+      }
+    };
+  
+    loadData();
+  
+    // 3. FETCH REAL PRICES FROM YOUR FLASK API
+    const fetchRealPrices = async () => {
+      try {
+        const res = await fetch('http://127.0.0.1:5000/prices');
+        const data = await res.json();
         
-        return {
-          ...stock,
-          currentPrice: Math.max(1, parseFloat(newPrice.toFixed(2))),
-          change: parseFloat(change.toFixed(2))
-        };
-      })
-    );
-  }, 3000); // Updates every 3 seconds
-
-  return () => clearInterval(interval); // Cleanup on unmount
-}, [username]);
-
+        setStocks(prevStocks =>
+          prevStocks.map(stock => {
+            const apiData = data[stock.id];
+            if (apiData) {
+              const change = ((apiData.currentPrice - apiData.basePrice) / apiData.basePrice) * 100;
+              return {
+                ...stock,
+                currentPrice: apiData.currentPrice,
+                basePrice: apiData.basePrice,
+                change: parseFloat(change.toFixed(2))
+              };
+            }
+            return stock;
+          })
+        );
+      } catch (error) {
+        console.error('Failed to fetch real prices:', error);
+      }
+    };
+  
+    fetchRealPrices(); // Initial fetch
+    const interval = setInterval(fetchRealPrices, 30000); // Every 30 seconds
+  
+    return () => clearInterval(interval);
+  }, [username]);
+  
   // Update performance data only when a new minute arrives
   useEffect(() => {
     const currentTotalValue = balance + calculatePortfolioValue();
@@ -133,7 +143,7 @@ export function Dashboard({ username, onLogout, onLeaderboard }: DashboardProps)
 
   // 3. Save ONLY Balance to MongoDB
   try {
-    await fetch('http://localhost:5000/api/update-balance', {
+    await fetch('http://127.0.0.1:5000/api/update-balance', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ username, newBalance }),
